@@ -33,7 +33,10 @@ public class Agendamento implements Serializable{
     }
 
 
-    //Calcula o valor total baseado na duração do agendamento + valor do ambiente; Garante duração mínima de 1 hora para evitar 0.
+    /**
+     * Calcula o valor total baseado na duração do agendamento + valor do ambiente.
+     * Garante duração mínima de 1 hora para evitar 0.
+     */
     private double calculaValorTotal(){
         long horas = Duration.between(horaInicio, horaFim).toHours();
         if(horas <= 0) horas = 1;
@@ -41,7 +44,9 @@ public class Agendamento implements Serializable{
         return (horas * ambiente.getValorHora()) + totalServicos;
     }
 
-    //Recalcula e atualiza o valor total do agendamento (deve ser chamado após adicionar serviços).
+    /**
+     * Recalcula e atualiza o valor total do agendamento (deve ser chamado após adicionar serviços).
+     */
     public void recalcularValorTotal() {
         this.valorTotal = calculaValorTotal();
     }
@@ -51,7 +56,7 @@ public class Agendamento implements Serializable{
         recalcularValorTotal();
     }
 
-    //Getters e Setters
+    /** Getters e Setters */
 
     public int getId() { return id; }
     public Aluno getAluno() { return aluno; }

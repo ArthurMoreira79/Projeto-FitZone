@@ -21,7 +21,7 @@ public class Aluno implements Serializable {
         this.dataCadastro = dataCadastro;
     }
 
-    //Getters e Setters
+    /** Getters e Setters */
 
     public String getCpf()             { return cpf; }
     public void setCpf(String cpf)     { this.cpf = cpf; }

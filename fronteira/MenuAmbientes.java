@@ -1,22 +1,24 @@
 package fronteira;
 
 import java.util.List;
-import java.util.Scanner;
 import controle.AdministradorSistema;
 import excecoes.*;
 import entidades.*;
 
 public class MenuAmbientes {
 
-    private Scanner leitor;
+    private LeitorEntrada leitor;
     private AdministradorSistema admin;
 
-    public MenuAmbientes(AdministradorSistema admin, Scanner leitor) {
+    public MenuAmbientes(AdministradorSistema admin, LeitorEntrada leitor) {
         this.admin = admin;
         this.leitor = leitor;
     }
 
-    //Exibe o submenu de ambientes em loop, com opção de cadastrar e listar, até o usuário voltar. Captura entradas numéricas inválidas sem encerrar o sistema.
+    /**
+     * Exibe o submenu de ambientes em loop, com opção de cadastrar e listar, até o usuário voltar.
+     * Captura entradas numéricas inválidas sem encerrar o sistema.
+     */
     public void exibir() {
         int opcao = -1;
         while (opcao != 0) {
@@ -25,14 +27,12 @@ public class MenuAmbientes {
                 System.out.println("1. Cadastrar novo ambiente");
                 System.out.println("2. Listar ambientes cadastrados");
                 System.out.println("0. Voltar");
-                System.out.print("\nEscolha: ");
-
-                opcao = Integer.parseInt(leitor.nextLine());
+                opcao = leitor.lerInteiro("Escolha: ");
 
                 switch (opcao) {
                     case 1 -> cadastrar();
                     case 2 -> listar();
-                    case 0 -> {} //volta ao menu principal
+                    case 0 -> {} /* volta ao menu principal */
                     default -> System.out.println("Opção inválida.");
                 }
             } catch (NumberFormatException e) {
@@ -47,7 +47,10 @@ public class MenuAmbientes {
         }
     }
 
-    //Solicita ao usuário o tipo e o ID do espaço a ser cadastrado. Instancia a subclasse correta de Ambiente via switch e delega o cadastro ao AdministradorSistema.
+    /**
+     * Solicita ao usuário o tipo e o ID do espaço a ser cadastrado.
+     * Instancia a subclasse correta de Ambiente via switch e delega o cadastro ao AdministradorSistema.
+     */
     private void cadastrar() throws FalhaPersistenciaException, AmbienteJaCadastradoException {
         ConsoleUtil.subtitulo("CADASTRO DE AMBIENTE");
         System.out.println("Tipos disponíveis:");
@@ -55,13 +58,9 @@ public class MenuAmbientes {
         System.out.println("2. Sala de Yoga");
         System.out.println("3. Sala de Crossfit");
         System.out.println("4. Piscina");
-        System.out.print("\nEscolha o tipo: ");
-
-        int tipo = Integer.parseInt(leitor.nextLine());
-        System.out.print("ID do ambiente: ");
-        String id = leitor.nextLine();
-        System.out.print("Nome do ambiente: ");
-        String nome = leitor.nextLine();
+        int tipo = leitor.lerInteiro("Escolha o tipo: ");
+        String id = leitor.lerTextoObrigatorio("ID do ambiente: ");
+        String nome = leitor.lerTextoObrigatorio("Nome do ambiente: ");
 
         Ambiente ambiente = switch (tipo) {
             case 1 -> new SalaMusculacao(id, nome);
@@ -76,7 +75,9 @@ public class MenuAmbientes {
         ConsoleUtil.respiro();
     }
 
-    //Lista todos os ambientes cadastrados no sistema em formato de tabela.
+    /**
+     * Lista todos os ambientes cadastrados no sistema em formato de tabela.
+     */
     private void listar() {
         ConsoleUtil.subtitulo("AMBIENTES CADASTRADOS");
         List<Ambiente> ambientes = admin.listarAmbientes();

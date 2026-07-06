@@ -1,7 +1,6 @@
 package fronteira;
 
 import java.util.List;
-import java.util.Scanner;
 import java.time.LocalDate;
 import entidades.Aluno;
 import controle.AdministradorSistema;
@@ -9,15 +8,17 @@ import excecoes.*;
 
 public class MenuAlunos {
 
-    private Scanner leitor;
+    private LeitorEntrada leitor;
     private AdministradorSistema admin;
 
-    public MenuAlunos(AdministradorSistema admin, Scanner leitor) {
+    public MenuAlunos(AdministradorSistema admin, LeitorEntrada leitor) {
         this.admin = admin;
         this.leitor = leitor;
     }
 
-    //Exibe o submenu de alunos em loop, com opções de cadastrar, buscar e listar, até o usuário escolher voltar ao menu principal.
+    /**
+     * Exibe o submenu de alunos em loop, com opções de cadastrar, buscar e listar, até o usuário escolher voltar ao menu principal.
+     */
     public void exibir() {
         int opcao = -1;
         while (opcao != 0) {
@@ -27,15 +28,13 @@ public class MenuAlunos {
                 System.out.println("2. Buscar aluno por CPF");
                 System.out.println("3. Listar todos os alunos");
                 System.out.println("0. Voltar");
-                System.out.print("\nEscolha: ");
-
-                opcao = Integer.parseInt(leitor.nextLine());
+                opcao = leitor.lerInteiro("Escolha: ");
 
                 switch (opcao) {
                     case 1 -> cadastrar();
                     case 2 -> buscar();
                     case 3 -> listar();
-                    case 0 -> {} //volta ao menu principal
+                    case 0 -> {} /* volta ao menu principal */
                     default -> System.out.println("Opção inválida.");
                 }
             } catch (NumberFormatException e) {
@@ -50,24 +49,27 @@ public class MenuAlunos {
         }
     }
 
-    //Solicita os dados do novo aluno e delega o cadastro ao AdministradorSistema.
+    /**
+     * Solicita os dados do novo aluno e delega o cadastro ao AdministradorSistema.
+     */
     private void cadastrar() throws AlunoJaCadastradoException, FalhaPersistenciaException {
         ConsoleUtil.subtitulo("CADASTRO DE ALUNO");
-        System.out.print("CPF: ");        String cpf = leitor.nextLine();
-        System.out.print("Nome: ");       String nome = leitor.nextLine();
-        System.out.print("Email: ");      String email = leitor.nextLine();
-        System.out.print("Telefone: ");   String telefone = leitor.nextLine();
+        String cpf = leitor.lerTextoObrigatorio("CPF: ");
+        String nome = leitor.lerTextoObrigatorio("Nome: ");
+        String email = leitor.lerTextoObrigatorio("Email: ");
+        String telefone = leitor.lerTextoObrigatorio("Telefone: ");
 
         admin.cadastrarAluno(new Aluno(cpf, nome, email, telefone, LocalDate.now()));
         System.out.println("\nAluno cadastrado com sucesso!");
         ConsoleUtil.respiro();
     }
 
-    //Busca um aluno pelo CPF e exibe seus dados. Lança AlunoNaoEncontradoException se não existir.
+    /**
+     * Busca um aluno pelo CPF e exibe seus dados. Lança AlunoNaoEncontradoException se não existir.
+     */
     private void buscar() throws AlunoNaoEncontradoException {
         ConsoleUtil.subtitulo("BUSCAR ALUNO");
-        System.out.print("CPF: ");
-        String cpf = leitor.nextLine();
+        String cpf = leitor.lerTextoObrigatorio("CPF: ");
 
         Aluno aluno = admin.buscarAluno(cpf);
         System.out.println();
@@ -76,7 +78,9 @@ public class MenuAlunos {
         ConsoleUtil.respiro();
     }
 
-    //Lista todos os alunos cadastrados no sistema em formato de tabela.
+    /**
+     * Lista todos os alunos cadastrados no sistema em formato de tabela.
+     */
     private void listar() {
         ConsoleUtil.subtitulo("ALUNOS CADASTRADOS");
         List<Aluno> alunos = admin.listarAlunos();

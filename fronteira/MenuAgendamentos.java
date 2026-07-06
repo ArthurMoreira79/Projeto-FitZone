@@ -1,7 +1,6 @@
 package fronteira;
 
 import java.util.List;
-import java.util.Scanner;
 import java.time.*;
 import controle.AdministradorSistema;
 import entidades.*;
@@ -9,15 +8,18 @@ import excecoes.*;
 
 public class MenuAgendamentos {
 
-    private Scanner leitor;
+    private LeitorEntrada leitor;
     private AdministradorSistema admin;
 
-    public MenuAgendamentos(AdministradorSistema admin, Scanner leitor) {
+    public MenuAgendamentos(AdministradorSistema admin, LeitorEntrada leitor) {
         this.admin = admin;
         this.leitor = leitor;
     }
 
-    //Exibe o submenu de agendamentos em loop: criar, cancelar, adicionar serviço a uma reserva já existente e listar. Captura entradas inválidas sem encerrar o sistema.
+    /**
+     * Exibe o submenu de agendamentos em loop: criar, cancelar, adicionar serviço a uma reserva já existente e listar.
+     * Captura entradas inválidas sem encerrar o sistema.
+     */
     public void exibir() {
         int opcao = -1;
         while (opcao != 0) {
@@ -28,16 +30,14 @@ public class MenuAgendamentos {
                 System.out.println("3. Adicionar serviço a uma reserva existente");
                 System.out.println("4. Listar todos os agendamentos");
                 System.out.println("0. Voltar");
-                System.out.print("\nEscolha: ");
-
-                opcao = Integer.parseInt(leitor.nextLine());
+                opcao = leitor.lerInteiro("Escolha: ");
 
                 switch (opcao) {
                     case 1 -> novaReserva();
                     case 2 -> cancelar();
                     case 3 -> adicionarServico();
                     case 4 -> listar();
-                    case 0 -> {} //volta ao menu principal
+                    case 0 -> {} /* volta ao menu principal */
                     default -> System.out.println("Opção inválida.");
                 }
             } catch (NumberFormatException e) {
@@ -48,35 +48,32 @@ public class MenuAgendamentos {
         }
     }
 
-    //Conduz o fluxo completo de criação de um novo agendamento:
-    //1. Busca o aluno pelo cpf - lança AlunoNaoEncontradoException se não existir.
-    //2. Busca o ambiente pelo ID via AdministradorSistema (nunca acessa o repositório direto).
-    //3. Lê data, hora de início e fim.
-    //4. Abre um submenu de serviços adicionais em loop até o usuário digitar 0.
-    //5. Chama admin.realizarAgendamento() - lança AmbienteIndisponivelException se houver conflito.
-    //6. Exibe o resumo do agendamento criado.
+    /**
+     * Conduz o fluxo completo de criação de um novo agendamento:
+     * 1. Busca o aluno pelo cpf - lança AlunoNaoEncontradoException se não existir.
+     * 2. Busca o ambiente pelo ID via AdministradorSistema (nunca acessa o repositório direto).
+     * 3. Lê data, hora de início e fim.
+     * 4. Abre um submenu de serviços adicionais em loop até o usuário digitar 0.
+     * 5. Chama admin.realizarAgendamento() - lança AmbienteIndisponivelException se houver conflito.
+     * 6. Exibe o resumo do agendamento criado.
+     */
     private void novaReserva() throws Exception {
         ConsoleUtil.subtitulo("NOVO AGENDAMENTO");
 
-        System.out.print("CPF do Aluno: ");
-        String cpf = leitor.nextLine();
+        String cpf = leitor.lerTextoObrigatorio("CPF do Aluno: ");
         Aluno aluno = admin.buscarAluno(cpf);
 
-        System.out.print("ID do Ambiente: ");
-        String idAmbiente = leitor.nextLine();
+        String idAmbiente = leitor.lerTextoObrigatorio("ID do Ambiente: ");
         Ambiente ambiente = admin.buscarAmbiente(idAmbiente);
         if (ambiente == null) {
             throw new IllegalArgumentException("Ambiente com ID '" + idAmbiente + "' não encontrado.");
         }
 
-        System.out.print("Data (AAAA-MM-DD): ");
-        LocalDate data = LocalDate.parse(leitor.nextLine());
+        LocalDate data = leitor.lerData("Data (AAAA-MM-DD): ");
 
-        System.out.print("Início (HH:MM): ");
-        LocalTime inicio = LocalTime.parse(leitor.nextLine());
+        LocalTime inicio = leitor.lerHora("Início (HH:MM): ");
 
-        System.out.print("Fim (HH:MM): ");
-        LocalTime fim = LocalTime.parse(leitor.nextLine());
+        LocalTime fim = leitor.lerHora("Fim (HH:MM): ");
 
         int idAgendamento = admin.gerarIdAgendamento();
         Agendamento agendamento = new Agendamento(idAgendamento, aluno, ambiente, data, inicio, fim);
@@ -91,7 +88,9 @@ public class MenuAgendamentos {
         ConsoleUtil.respiro();
     }
 
-    //Submenu de seleção de serviços adicionais usado na criação do agendamento.
+    /**
+     * Submenu de seleção de serviços adicionais usado na criação do agendamento.
+     */
     private void selecionarServicos(Agendamento agendamento) throws ServicoInvalidoException {
         int opcaoServico = -1;
         while (opcaoServico != 0) {
@@ -101,9 +100,7 @@ public class MenuAgendamentos {
             System.out.println("3. Personal Trainer         (R$50,00)");
             System.out.println("4. Locker da Academia       (R$5,00/unidade)");
             System.out.println("0. Finalizar e confirmar agendamento");
-            System.out.print("\nEscolha: ");
-
-            opcaoServico = Integer.parseInt(leitor.nextLine());
+            opcaoServico = leitor.lerInteiro("Escolha: ");
 
             switch (opcaoServico) {
                 case 1 -> {
@@ -119,8 +116,7 @@ public class MenuAgendamentos {
                     System.out.println("Personal Trainer adicionado. (+R$50,00)");
                 }
                 case 4 -> {
-                    System.out.print("Quantidade de lockers: ");
-                    int qtd = Integer.parseInt(leitor.nextLine());
+                    int qtd = leitor.lerInteiro("Quantidade de lockers: ");
                     agendamento.adicionarServico(new LockerAcademia(qtd));
                     System.out.println("Locker adicionado. (+R$" + (qtd * 5.0) + ")");
                 }
@@ -130,26 +126,25 @@ public class MenuAgendamentos {
         }
     }
 
-    //Solicita o ID de uma reserva já existente e adiciona um novo serviço a ela, delegando ao AdministradorSistema.adicionarServicoAoAgendamento() (que também persiste a alteração).
+    /**
+     * Solicita o ID de uma reserva já existente e adiciona um novo serviço a ela, delegando ao AdministradorSistema.adicionarServicoAoAgendamento() (que também persiste a alteração).
+     */
     private void adicionarServico() throws AgendamentoNaoEncontradoException, ServicoInvalidoException, FalhaPersistenciaException {
         ConsoleUtil.subtitulo("ADICIONAR SERVIÇO A RESERVA EXISTENTE");
-        System.out.print("ID da reserva: ");
-        int id = Integer.parseInt(leitor.nextLine());
+        int id = leitor.lerInteiro("ID da reserva: ");
 
         System.out.println("1. Avaliação Física         (R$70,00)");
         System.out.println("2. Nutricionista            (R$80,00)");
         System.out.println("3. Personal Trainer         (R$50,00)");
         System.out.println("4. Locker da Academia       (R$5,00/unidade)");
-        System.out.print("\nEscolha: ");
-        int opcao = Integer.parseInt(leitor.nextLine());
+        int opcao = leitor.lerInteiro("Escolha: ");
 
         ServicoAdicional servico = switch (opcao) {
             case 1 -> new AvaliacaoFisica();
             case 2 -> new Nutricionista();
             case 3 -> new PersonalTrainer();
             case 4 -> {
-                System.out.print("Quantidade de lockers: ");
-                int qtd = Integer.parseInt(leitor.nextLine());
+                int qtd = leitor.lerInteiro("Quantidade de lockers: ");
                 yield new LockerAcademia(qtd);
             }
             default -> throw new ServicoInvalidoException("Opção de serviço inexistente.");
@@ -160,17 +155,20 @@ public class MenuAgendamentos {
         ConsoleUtil.respiro();
     }
 
-    //Solicita o ID de uma reserva e a cancela chamando admin.cancelarAgendamento().
+    /**
+     * Solicita o ID de uma reserva e a cancela chamando admin.cancelarAgendamento().
+     */
     private void cancelar() throws AgendamentoNaoEncontradoException, FalhaPersistenciaException {
         ConsoleUtil.subtitulo("CANCELAR AGENDAMENTO");
-        System.out.print("ID da reserva: ");
-        int id = Integer.parseInt(leitor.nextLine());
+        int id = leitor.lerInteiro("ID da reserva: ");
         admin.cancelarAgendamento(id);
         System.out.println("\nAgendamento #" + id + " cancelado com sucesso.");
         ConsoleUtil.respiro();
     }
 
-    //Lista todos os agendamentos registrados no sistema em formato de tabela.
+    /**
+     * Lista todos os agendamentos registrados no sistema em formato de tabela.
+     */
     private void listar() {
         ConsoleUtil.subtitulo("AGENDAMENTOS CADASTRADOS");
         List<Agendamento> lista = admin.listarAgendamentos();

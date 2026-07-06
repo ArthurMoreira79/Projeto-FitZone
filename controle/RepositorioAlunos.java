@@ -14,19 +14,28 @@ public class RepositorioAlunos implements Serializable{
 
     public RepositorioAlunos() throws FalhaPersistenciaException { carregarArquivo(); }
 
-    //Insere um aluno ao mapa usando cpf.
+    /**
+     * Insere um aluno ao mapa usando cpf.
+     */
     public void inserir(Aluno a) throws FalhaPersistenciaException{
         alunos.put(a.getCpf(), a);
         salvarArquivo();
     }
 
-    //Busca e retorna um aluno pelo cpf.
+    /**
+     * Busca e retorna um aluno pelo cpf.
+     */
     public Aluno buscar(String cpf) { return alunos.get(cpf); }
 
-    //Retorna uma lista com todos os alunos
+    /**
+     * Retorna uma lista com todos os alunos
+     */
     public List<Aluno> listarTodos() { return new ArrayList<>(alunos.values()); }
 
-    //Serializa o mapa de alunos para o arquivo alunos.dat; Lança FalhaPersistenciaException em caso de falha de I/O.
+    /**
+     * Serializa o mapa de alunos para o arquivo alunos.dat.
+     * Lança FalhaPersistenciaException em caso de falha de I/O.
+     */
     private void salvarArquivo() throws FalhaPersistenciaException{
         try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(CAMINHO))){
             oos.writeObject(alunos);
@@ -35,7 +44,11 @@ public class RepositorioAlunos implements Serializable{
         }
     }
 
-    //Desserializa o mapa de alunos a partir do arquivo alunos.dat; Se o arquivo não existir, o sistema inicia com o mapa vazio. Se existir mas estiver corrompido, lança FalhaPersistenciaException.
+    /**
+     * Desserializa o mapa de alunos a partir do arquivo alunos.dat.
+     * Se o arquivo não existir, o sistema inicia com o mapa vazio.
+     * Se existir mas estiver corrompido, lança FalhaPersistenciaException.
+     */
     @SuppressWarnings("unchecked")
     private void carregarArquivo() throws FalhaPersistenciaException{
         File file = new File(CAMINHO);

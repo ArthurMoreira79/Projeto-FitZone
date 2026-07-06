@@ -2,21 +2,22 @@ package fronteira;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 import controle.AdministradorSistema;
 import entidades.Agendamento;
 
 public class MenuRelatorios {
 
-    private Scanner leitor;
+    private LeitorEntrada leitor;
     private AdministradorSistema admin;
 
-    public MenuRelatorios(AdministradorSistema admin, Scanner leitor) {
+    public MenuRelatorios(AdministradorSistema admin, LeitorEntrada leitor) {
         this.admin = admin;
         this.leitor = leitor;
     }
 
-    //Exibe o menu de relatórios em loop, com as 4 opções, até o usuário voltar.
+    /**
+     * Exibe o menu de relatórios em loop, com as 4 opções, até o usuário voltar.
+     */
     public void exibir() {
         int opcao = -1;
         while (opcao != 0) {
@@ -27,16 +28,14 @@ public class MenuRelatorios {
                 System.out.println("3. Faturamento Total");
                 System.out.println("4. Serviços Adicionais");
                 System.out.println("0. Voltar");
-                System.out.print("\nEscolha: ");
-
-                opcao = Integer.parseInt(leitor.nextLine());
+                opcao = leitor.lerInteiro("Escolha: ");
 
                 switch (opcao) {
                     case 1 -> relatorioPorAluno();
                     case 2 -> relatorioPorAmbiente();
                     case 3 -> relatorioFaturamento();
                     case 4 -> arrecadamentoPorServico();
-                    case 0 -> {} //volta ao menu principal
+                    case 0 -> {} /* volta ao menu principal */
                     default -> System.out.println("Opção inválida.");
                 }
             } catch (NumberFormatException e) {
@@ -49,8 +48,7 @@ public class MenuRelatorios {
 
     private void relatorioPorAluno() {
         ConsoleUtil.subtitulo("RELATÓRIO: AGENDAMENTOS POR ALUNO");
-        System.out.print("CPF do Aluno: ");
-        String cpf = leitor.nextLine();
+        String cpf = leitor.lerTextoObrigatorio("CPF do Aluno: ");
 
         List<Agendamento> agendamentos = admin.relatorioPorAluno(cpf);
 

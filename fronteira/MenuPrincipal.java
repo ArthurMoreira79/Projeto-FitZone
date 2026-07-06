@@ -5,16 +5,21 @@ import controle.AdministradorSistema;
 
 public class MenuPrincipal {
 
-    private Scanner leitor;
+    private LeitorEntrada leitor;
     private AdministradorSistema admin;
 
-    //O Scanner é criado uma única vez aqui e repassado para todos os submenus, evitando múltiplos Scanners abertos sobre o mesmo System.in.
+    /**
+     * O Scanner é criado uma única vez aqui e repassado para todos os submenus, evitando múltiplos Scanners abertos sobre o mesmo System.in.
+     */
     public MenuPrincipal(AdministradorSistema admin) {
         this.admin = admin;
-        this.leitor = new Scanner(System.in);
+        this.leitor = new LeitorEntrada(new Scanner(System.in));
     }
 
-    //Exibe o loop principal do sistema. Lê a opção do usuário e redireciona para o submenu correspondente.
+    /**
+     * Exibe o loop principal do sistema.
+     * Lê a opção do usuário e redireciona para o submenu correspondente.
+     */
     public void exibir() {
         int opcao = -1;
         while (opcao != 0) {
@@ -26,7 +31,7 @@ public class MenuPrincipal {
             System.out.println("0. Sair");
             System.out.print("\nEscolha: ");
             try {
-                opcao = Integer.parseInt(leitor.nextLine());
+                opcao = leitor.lerInteiro("Escolha: ");
                 switch (opcao) {
                     case 1 -> new MenuAlunos(admin, leitor).exibir();
                     case 2 -> new MenuAmbientes(admin, leitor).exibir();

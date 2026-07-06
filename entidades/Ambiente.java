@@ -2,6 +2,11 @@ package entidades;
 
 import java.io.Serializable;
 
+/**
+ * Representa um ambiente reservável do estúdio (salas, piscina, etc.).
+ * Classe abstrata: cada tipo concreto define sua própria descrição.
+*/
+
 public abstract class Ambiente implements Serializable{
     
     private static final long serialVersionUID = 1L;
@@ -16,7 +21,7 @@ public abstract class Ambiente implements Serializable{
         this.valorHora = valorHora;
     }
 
-    //Getters e Setters
+    /* Getters e Setters */
 
     public String getId()                        { return id; }
     public void setId(String id)                 { this.id = id; }
