@@ -44,9 +44,9 @@ public class AdministradorSistema {
     public RepositorioAmbientes getRepositorioAmbiente() { return repoAmbientes; }
 
     //Cadastra um novo ambiente no sistema; verifica se o ID já existe antes de inserir e lança exceção se duplicado.
-    public void cadastrarAmbiente(Ambiente a) throws AmbienteIndisponivelException, FalhaPersistenciaException {
+    public void cadastrarAmbiente(Ambiente a) throws AmbienteJaCadastradoException, FalhaPersistenciaException {
         if(repoAmbientes.buscar(a.getId()) != null) {
-            throw new AmbienteIndisponivelException("ID de ambiente já existe.");
+            throw new AmbienteJaCadastradoException("ID de ambiente já existe.");
         }
         repoAmbientes.inserir(a);
     }

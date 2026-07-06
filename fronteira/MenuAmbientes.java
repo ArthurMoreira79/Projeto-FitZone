@@ -39,7 +39,7 @@ public class MenuAmbientes {
                 System.out.println("Erro: Valor numérico inválido.");
             } catch (FalhaPersistenciaException e) {
                 System.out.println("Erro ao salvar dados: " + e.getMessage());
-            } catch (AmbienteIndisponivelException e) {
+            } catch (AmbienteJaCadastradoException e) {
                 System.out.println("Erro: " + e.getMessage());
             } catch (Exception e) {
                 System.out.println("Erro inesperado: " + e.getMessage());
@@ -48,7 +48,7 @@ public class MenuAmbientes {
     }
 
     //Solicita ao usuário o tipo e o ID do espaço a ser cadastrado. Instancia a subclasse correta de Ambiente via switch e delega o cadastro ao AdministradorSistema.
-    private void cadastrar() throws FalhaPersistenciaException, AmbienteIndisponivelException {
+    private void cadastrar() throws FalhaPersistenciaException, AmbienteJaCadastradoException {
         ConsoleUtil.subtitulo("CADASTRO DE AMBIENTE");
         System.out.println("Tipos disponíveis:");
         System.out.println("1. Sala de Musculação");
