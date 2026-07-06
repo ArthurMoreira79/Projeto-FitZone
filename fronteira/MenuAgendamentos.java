@@ -17,19 +17,18 @@ public class MenuAgendamentos {
         this.leitor = leitor;
     }
 
-    //Exibe o submenu de agendamentos em loop: criar, cancelar, adicionar serviço a uma
-    //reserva já existente e listar. Captura entradas inválidas sem encerrar o sistema.
+    //Exibe o submenu de agendamentos em loop: criar, cancelar, adicionar serviço a uma reserva já existente e listar. Captura entradas inválidas sem encerrar o sistema.
     public void exibir() {
         int opcao = -1;
         while (opcao != 0) {
             try {
-                System.out.println("\n===== MENU DE AGENDAMENTOS =====");
+                ConsoleUtil.titulo("MENU DE AGENDAMENTOS");
                 System.out.println("1. Nova reserva");
                 System.out.println("2. Cancelar reserva");
                 System.out.println("3. Adicionar serviço a uma reserva existente");
                 System.out.println("4. Listar todos os agendamentos");
                 System.out.println("0. Voltar");
-                System.out.print("Escolha: ");
+                System.out.print("\nEscolha: ");
 
                 opcao = Integer.parseInt(leitor.nextLine());
 
@@ -57,7 +56,7 @@ public class MenuAgendamentos {
     //5. Chama admin.realizarAgendamento() - lança AmbienteIndisponivelException se houver conflito.
     //6. Exibe o resumo do agendamento criado.
     private void novaReserva() throws Exception {
-        System.out.println("\n--- NOVO AGENDAMENTO ---");
+        ConsoleUtil.subtitulo("NOVO AGENDAMENTO");
 
         System.out.print("CPF do Aluno: ");
         String cpf = leitor.nextLine();
@@ -87,20 +86,22 @@ public class MenuAgendamentos {
         admin.realizarAgendamento(agendamento);
 
         System.out.println("\n✔ Agendamento realizado com sucesso!");
+        ConsoleUtil.linha();
         System.out.println(agendamento);
+        ConsoleUtil.respiro();
     }
 
     //Submenu de seleção de serviços adicionais usado na criação do agendamento.
     private void selecionarServicos(Agendamento agendamento) throws ServicoInvalidoException {
         int opcaoServico = -1;
         while (opcaoServico != 0) {
-            System.out.println("\n--- SERVIÇOS ADICIONAIS ---");
+            ConsoleUtil.subtitulo("SERVIÇOS ADICIONAIS");
             System.out.println("1. Avaliação Física         (R$70,00)");
             System.out.println("2. Nutricionista            (R$80,00)");
             System.out.println("3. Personal Trainer         (R$50,00)");
             System.out.println("4. Locker da Academia       (R$5,00/unidade)");
             System.out.println("0. Finalizar e confirmar agendamento");
-            System.out.print("Escolha: ");
+            System.out.print("\nEscolha: ");
 
             opcaoServico = Integer.parseInt(leitor.nextLine());
 
@@ -129,10 +130,9 @@ public class MenuAgendamentos {
         }
     }
 
-    //Solicita o ID de uma reserva já existente e adiciona um novo serviço a ela,
-    //delegando ao AdministradorSistema.adicionarServicoAoAgendamento() (que também persiste a alteração).
+    //Solicita o ID de uma reserva já existente e adiciona um novo serviço a ela, delegando ao AdministradorSistema.adicionarServicoAoAgendamento() (que também persiste a alteração).
     private void adicionarServico() throws AgendamentoNaoEncontradoException, ServicoInvalidoException, FalhaPersistenciaException {
-        System.out.println("\n--- ADICIONAR SERVIÇO A RESERVA EXISTENTE ---");
+        ConsoleUtil.subtitulo("ADICIONAR SERVIÇO A RESERVA EXISTENTE");
         System.out.print("ID da reserva: ");
         int id = Integer.parseInt(leitor.nextLine());
 
@@ -140,7 +140,7 @@ public class MenuAgendamentos {
         System.out.println("2. Nutricionista            (R$80,00)");
         System.out.println("3. Personal Trainer         (R$50,00)");
         System.out.println("4. Locker da Academia       (R$5,00/unidade)");
-        System.out.print("Escolha: ");
+        System.out.print("\nEscolha: ");
         int opcao = Integer.parseInt(leitor.nextLine());
 
         ServicoAdicional servico = switch (opcao) {
@@ -156,31 +156,37 @@ public class MenuAgendamentos {
         };
 
         admin.adicionarServicoAoAgendamento(id, servico);
-        System.out.println("Serviço adicionado com sucesso à reserva #" + id + ".");
+        System.out.println("\nServiço adicionado com sucesso à reserva #" + id + ".");
+        ConsoleUtil.respiro();
     }
 
     //Solicita o ID de uma reserva e a cancela chamando admin.cancelarAgendamento().
     private void cancelar() throws AgendamentoNaoEncontradoException, FalhaPersistenciaException {
-        System.out.println("\n--- CANCELAR AGENDAMENTO ---");
+        ConsoleUtil.subtitulo("CANCELAR AGENDAMENTO");
         System.out.print("ID da reserva: ");
         int id = Integer.parseInt(leitor.nextLine());
         admin.cancelarAgendamento(id);
-        System.out.println("Agendamento #" + id + " cancelado com sucesso.");
+        System.out.println("\nAgendamento #" + id + " cancelado com sucesso.");
+        ConsoleUtil.respiro();
     }
 
-    //Lista todos os agendamentos registrados no sistema.
+    //Lista todos os agendamentos registrados no sistema em formato de tabela.
     private void listar() {
+        ConsoleUtil.subtitulo("AGENDAMENTOS CADASTRADOS");
         List<Agendamento> lista = admin.listarAgendamentos();
 
         if (lista.isEmpty()) {
             System.out.println("Nenhum agendamento cadastrado.");
-            return;
+        } else {
+            System.out.println();
+            System.out.printf("%-4s %-18s %-18s %-12s %-13s %-10s%n",
+                    "ID", "ALUNO", "AMBIENTE", "DATA", "HORÁRIO", "TOTAL");
+            ConsoleUtil.linha();
+            lista.forEach(a -> System.out.printf("%-4d %-18s %-18s %-12s %-13s %-10s%n",
+                    a.getId(), a.getAluno().getNome(), a.getAmbiente().getNome(),
+                    a.getDataAgendamento(), a.getHoraInicio() + "-" + a.getHoraFim(),
+                    String.format("R$ %.2f", a.getValorTotal())));
         }
-
-        System.out.println("\n--- AGENDAMENTOS CADASTRADOS ---");
-        lista.forEach(a -> {
-            System.out.println(a);
-            System.out.println("-----------------------------");
-        });
+        ConsoleUtil.respiro();
     }
 }

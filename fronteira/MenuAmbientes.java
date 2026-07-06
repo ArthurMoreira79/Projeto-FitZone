@@ -16,17 +16,16 @@ public class MenuAmbientes {
         this.leitor = leitor;
     }
 
-    //Exibe o submenu de ambientes em loop, com opção de cadastrar e listar, até o usuário voltar.
-    //Captura entradas numéricas inválidas sem encerrar o sistema.
+    //Exibe o submenu de ambientes em loop, com opção de cadastrar e listar, até o usuário voltar. Captura entradas numéricas inválidas sem encerrar o sistema.
     public void exibir() {
         int opcao = -1;
         while (opcao != 0) {
             try {
-                System.out.println("\n===== MENU DE AMBIENTES =====");
+                ConsoleUtil.titulo("MENU DE AMBIENTES");
                 System.out.println("1. Cadastrar novo ambiente");
                 System.out.println("2. Listar ambientes cadastrados");
                 System.out.println("0. Voltar");
-                System.out.print("Escolha: ");
+                System.out.print("\nEscolha: ");
 
                 opcao = Integer.parseInt(leitor.nextLine());
 
@@ -48,16 +47,15 @@ public class MenuAmbientes {
         }
     }
 
-    //Solicita ao usuário o tipo e o ID do espaço a ser cadastrado. Instancia a subclasse
-    //correta de Ambiente via switch e delega o cadastro ao AdministradorSistema.
+    //Solicita ao usuário o tipo e o ID do espaço a ser cadastrado. Instancia a subclasse correta de Ambiente via switch e delega o cadastro ao AdministradorSistema.
     private void cadastrar() throws FalhaPersistenciaException, AmbienteIndisponivelException {
-        System.out.println("\n--- CADASTRO DE AMBIENTE ---");
+        ConsoleUtil.subtitulo("CADASTRO DE AMBIENTE");
         System.out.println("Tipos disponíveis:");
         System.out.println("1. Sala de Musculação");
         System.out.println("2. Sala de Yoga");
         System.out.println("3. Sala de Crossfit");
         System.out.println("4. Piscina");
-        System.out.print("Escolha o tipo: ");
+        System.out.print("\nEscolha o tipo: ");
 
         int tipo = Integer.parseInt(leitor.nextLine());
         System.out.print("ID do ambiente: ");
@@ -74,20 +72,26 @@ public class MenuAmbientes {
         };
 
         admin.cadastrarAmbiente(ambiente);
-        System.out.println("Ambiente cadastrado com sucesso!");
+        System.out.println("\nAmbiente cadastrado com sucesso!");
+        ConsoleUtil.respiro();
     }
 
-    //Lista todos os ambientes cadastrados no sistema, exibindo suas informações de forma organizada.
+    //Lista todos os ambientes cadastrados no sistema em formato de tabela.
     private void listar() {
-        System.out.println("\n--- AMBIENTES CADASTRADOS ---");
+        ConsoleUtil.subtitulo("AMBIENTES CADASTRADOS");
         List<Ambiente> ambientes = admin.listarAmbientes();
 
         if (ambientes.isEmpty()) {
             System.out.println("Nenhum ambiente cadastrado.");
         } else {
+            System.out.println();
+            System.out.printf("%-20s %-8s %-22s %-10s%n", "TIPO", "ID", "NOME", "VALOR/H");
+            ConsoleUtil.linha();
             for (Ambiente a : ambientes) {
-                System.out.println(a.getDescricao());
+                System.out.printf("%-20s %-8s %-22s %-10s%n",
+                        a.getTipo(), a.getId(), a.getNome(), String.format("R$ %.2f", a.getValorHora()));
             }
         }
+        ConsoleUtil.respiro();
     }
 }

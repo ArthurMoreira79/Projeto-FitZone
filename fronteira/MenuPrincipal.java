@@ -4,36 +4,41 @@ import java.util.Scanner;
 import controle.AdministradorSistema;
 
 public class MenuPrincipal {
-    
+
     private Scanner leitor;
     private AdministradorSistema admin;
 
-    public MenuPrincipal(AdministradorSistema admin) { this.admin = admin; this.leitor = new Scanner(System.in); }
+    //O Scanner é criado uma única vez aqui e repassado para todos os submenus, evitando múltiplos Scanners abertos sobre o mesmo System.in.
+    public MenuPrincipal(AdministradorSistema admin) {
+        this.admin = admin;
+        this.leitor = new Scanner(System.in);
+    }
 
-    //Exibe o loop principal do sistema. Lê a opção do user e redireciona para o submenu corespondente.
-
-    public void exibir() { 
+    //Exibe o loop principal do sistema. Lê a opção do usuário e redireciona para o submenu correspondente.
+    public void exibir() {
         int opcao = -1;
         while (opcao != 0) {
-            System.out.println("\n===== FITZONE - MENU PRINCIPAL =====");
+            ConsoleUtil.titulo("FITZONE - MENU PRINCIPAL");
             System.out.println("1. Alunos");
             System.out.println("2. Ambientes");
             System.out.println("3. Agendamentos e Serviços");
             System.out.println("4. Relatórios");
             System.out.println("0. Sair");
-            System.out.print("Escolha: ");
-            try{
+            System.out.print("\nEscolha: ");
+            try {
                 opcao = Integer.parseInt(leitor.nextLine());
-                switch(opcao){
+                switch (opcao) {
                     case 1 -> new MenuAlunos(admin, leitor).exibir();
                     case 2 -> new MenuAmbientes(admin, leitor).exibir();
                     case 3 -> new MenuAgendamentos(admin, leitor).exibir();
                     case 4 -> new MenuRelatorios(admin, leitor).exibir();
-                    case 0 -> System.out.println("Encerrando...");
+                    case 0 -> System.out.println("\nEncerrando...");
                     default -> System.out.println("Opção inválida.");
                 }
-            } catch(Exception e){
+            } catch (NumberFormatException e) {
                 System.out.println("Erro: Entrada inválida.");
+            } catch (Exception e) {
+                System.out.println("Erro inesperado: " + e.getMessage());
             }
         }
     }

@@ -17,18 +17,17 @@ public class MenuAlunos {
         this.leitor = leitor;
     }
 
-    //Exibe o submenu de alunos em loop, com opções de cadastrar, buscar e listar,
-    //até o usuário escolher voltar ao menu principal.
+    //Exibe o submenu de alunos em loop, com opções de cadastrar, buscar e listar, até o usuário escolher voltar ao menu principal.
     public void exibir() {
         int opcao = -1;
         while (opcao != 0) {
             try {
-                System.out.println("\n===== MENU DE ALUNOS =====");
+                ConsoleUtil.titulo("MENU DE ALUNOS");
                 System.out.println("1. Cadastrar novo aluno");
                 System.out.println("2. Buscar aluno por CPF");
                 System.out.println("3. Listar todos os alunos");
                 System.out.println("0. Voltar");
-                System.out.print("Escolha: ");
+                System.out.print("\nEscolha: ");
 
                 opcao = Integer.parseInt(leitor.nextLine());
 
@@ -53,35 +52,52 @@ public class MenuAlunos {
 
     //Solicita os dados do novo aluno e delega o cadastro ao AdministradorSistema.
     private void cadastrar() throws AlunoJaCadastradoException, FalhaPersistenciaException {
-        System.out.println("\n--- CADASTRO DE ALUNO ---");
+        ConsoleUtil.subtitulo("CADASTRO DE ALUNO");
         System.out.print("CPF: ");        String cpf = leitor.nextLine();
         System.out.print("Nome: ");       String nome = leitor.nextLine();
         System.out.print("Email: ");      String email = leitor.nextLine();
         System.out.print("Telefone: ");   String telefone = leitor.nextLine();
 
         admin.cadastrarAluno(new Aluno(cpf, nome, email, telefone, LocalDate.now()));
-        System.out.println("Aluno cadastrado com sucesso!");
+        System.out.println("\nAluno cadastrado com sucesso!");
+        ConsoleUtil.respiro();
     }
 
     //Busca um aluno pelo CPF e exibe seus dados. Lança AlunoNaoEncontradoException se não existir.
     private void buscar() throws AlunoNaoEncontradoException {
-        System.out.println("\n--- BUSCAR ALUNO ---");
+        ConsoleUtil.subtitulo("BUSCAR ALUNO");
         System.out.print("CPF: ");
         String cpf = leitor.nextLine();
 
         Aluno aluno = admin.buscarAluno(cpf);
-        System.out.println(aluno);
+        System.out.println();
+        imprimirCabecalho();
+        imprimirLinha(aluno);
+        ConsoleUtil.respiro();
     }
 
-    //Lista todos os alunos cadastrados no sistema.
+    //Lista todos os alunos cadastrados no sistema em formato de tabela.
     private void listar() {
-        System.out.println("\n--- ALUNOS CADASTRADOS ---");
+        ConsoleUtil.subtitulo("ALUNOS CADASTRADOS");
         List<Aluno> alunos = admin.listarAlunos();
 
         if (alunos.isEmpty()) {
             System.out.println("Nenhum aluno cadastrado.");
         } else {
-            alunos.forEach(System.out::println);
+            System.out.println();
+            imprimirCabecalho();
+            alunos.forEach(this::imprimirLinha);
         }
+        ConsoleUtil.respiro();
+    }
+
+    private void imprimirCabecalho() {
+        System.out.printf("%-15s %-22s %-25s %-15s %-12s%n", "CPF", "NOME", "EMAIL", "TELEFONE", "CADASTRO");
+        ConsoleUtil.linha();
+    }
+
+    private void imprimirLinha(Aluno a) {
+        System.out.printf("%-15s %-22s %-25s %-15s %-12s%n",
+                a.getCpf(), a.getNome(), a.getEmail(), a.getTelefone(), a.getDataCadastro());
     }
 }

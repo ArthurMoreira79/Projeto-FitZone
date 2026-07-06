@@ -21,13 +21,13 @@ public class MenuRelatorios {
         int opcao = -1;
         while (opcao != 0) {
             try {
-                System.out.println("\n===== MENU DE RELATÓRIOS =====");
+                ConsoleUtil.titulo("MENU DE RELATÓRIOS");
                 System.out.println("1. Agendamentos por Aluno");
                 System.out.println("2. Utilização de Ambientes");
                 System.out.println("3. Faturamento Total");
                 System.out.println("4. Serviços Adicionais");
                 System.out.println("0. Voltar");
-                System.out.print("Escolha: ");
+                System.out.print("\nEscolha: ");
 
                 opcao = Integer.parseInt(leitor.nextLine());
 
@@ -48,80 +48,97 @@ public class MenuRelatorios {
     }
 
     private void relatorioPorAluno() {
-        System.out.println("\n--- RELATÓRIO: AGENDAMENTOS POR ALUNO ---");
+        ConsoleUtil.subtitulo("RELATÓRIO: AGENDAMENTOS POR ALUNO");
         System.out.print("CPF do Aluno: ");
         String cpf = leitor.nextLine();
 
         List<Agendamento> agendamentos = admin.relatorioPorAluno(cpf);
 
         if (agendamentos.isEmpty()) {
-            System.out.println("Nenhum agendamento encontrado para este aluno.");
+            System.out.println("\nNenhum agendamento encontrado para este aluno.");
         } else {
-            System.out.println("Agendamentos encontrados: " + agendamentos.size());
-            System.out.println("-------------------------------");
-            agendamentos.forEach(a -> {
-                System.out.println(a);
-                System.out.println("-------------------------------");
-            });
+            System.out.println("\nAgendamentos encontrados: " + agendamentos.size());
+            System.out.printf("%-4s %-18s %-12s %-13s %-10s%n", "ID", "AMBIENTE", "DATA", "HORÁRIO", "TOTAL");
+            ConsoleUtil.linha();
+            agendamentos.forEach(a -> System.out.printf("%-4d %-18s %-12s %-13s %-10s%n",
+                    a.getId(), a.getAmbiente().getNome(), a.getDataAgendamento(),
+                    a.getHoraInicio() + "-" + a.getHoraFim(), String.format("R$ %.2f", a.getValorTotal())));
         }
+        ConsoleUtil.respiro();
     }
 
     @SuppressWarnings("unchecked")
     private void relatorioPorAmbiente() {
-        System.out.println("\n--- RELATÓRIO: UTILIZAÇÃO DE AMBIENTES ---");
+        ConsoleUtil.subtitulo("RELATÓRIO: UTILIZAÇÃO DE AMBIENTES");
         Map<String, Object> relatorio = admin.relatorioPorAmbiente();
         Map<String, Object> ambientes = (Map<String, Object>) relatorio.get("ambientes");
 
         if (ambientes == null || ambientes.isEmpty()) {
-            System.out.println("Nenhum ambiente com agendamentos cadastrados.");
+            System.out.println("\nNenhum ambiente com agendamentos cadastrados.");
         } else {
+            System.out.println();
+            System.out.printf("%-22s %-14s %-10s%n", "AMBIENTE", "AGENDAMENTOS", "HORAS");
+            ConsoleUtil.linha();
             ambientes.forEach((id, info) -> {
                 Map<String, Object> dados = (Map<String, Object>) info;
                 String nomeAmbiente = (String) dados.get("ambiente");
                 int quantidade = (int) dados.get("quantidade");
                 long horas = (long) dados.get("horas");
-                System.out.println(nomeAmbiente + " | Agendamentos: " + quantidade + " | Horas: " + horas);
+                System.out.printf("%-22s %-14d %-10d%n", nomeAmbiente, quantidade, horas);
             });
         }
+        ConsoleUtil.respiro();
     }
 
     @SuppressWarnings("unchecked")
     private void relatorioFaturamento() {
-        System.out.println("\n--- RELATÓRIO: FATURAMENTO ---");
+        ConsoleUtil.subtitulo("RELATÓRIO: FATURAMENTO");
         Map<String, Object> relatorio = admin.relatorioFaturamento();
 
-        System.out.println("\n--- FATURAMENTO POR DIA ---");
+        System.out.println("\nPor dia:");
+        System.out.printf("%-15s %-10s%n", "DATA", "VALOR");
+        ConsoleUtil.linha();
         Map<String, Double> porDia = (Map<String, Double>) relatorio.get("porDia");
-        porDia.forEach((data, valor) -> System.out.println(data + " -> R$ " + String.format("%.2f", valor)));
+        porDia.forEach((data, valor) -> System.out.printf("%-15s %-10s%n", data, String.format("R$ %.2f", valor)));
 
-        System.out.println("\n--- FATURAMENTO POR AMBIENTE ---");
+        System.out.println("\nPor ambiente:");
+        System.out.printf("%-22s %-10s%n", "AMBIENTE", "VALOR");
+        ConsoleUtil.linha();
         Map<String, Double> porAmbiente = (Map<String, Double>) relatorio.get("porAmbiente");
-        porAmbiente.forEach((ambiente, valor) -> System.out.println(ambiente + " -> R$ " + String.format("%.2f", valor)));
+        porAmbiente.forEach((ambiente, valor) -> System.out.printf("%-22s %-10s%n", ambiente, String.format("R$ %.2f", valor)));
 
-        System.out.println("\n--- FATURAMENTO POR ALUNO ---");
+        System.out.println("\nPor aluno:");
+        System.out.printf("%-22s %-10s%n", "ALUNO", "VALOR");
+        ConsoleUtil.linha();
         Map<String, Double> porAluno = (Map<String, Double>) relatorio.get("porAluno");
-        porAluno.forEach((aluno, valor) -> System.out.println(aluno + " -> R$ " + String.format("%.2f", valor)));
+        porAluno.forEach((aluno, valor) -> System.out.printf("%-22s %-10s%n", aluno, String.format("R$ %.2f", valor)));
 
-        System.out.println("\n--- FATURAMENTO TOTAL ---");
         double total = (double) relatorio.get("total");
-        System.out.printf("R$ %.2f%n", total);
+        System.out.println();
+        ConsoleUtil.linha();
+        System.out.printf("TOTAL GERAL: R$ %.2f%n", total);
+        ConsoleUtil.respiro();
     }
 
     @SuppressWarnings("unchecked")
     private void arrecadamentoPorServico() {
-        System.out.println("\n--- RELATÓRIO: SERVIÇOS ADICIONAIS ---");
+        ConsoleUtil.subtitulo("RELATÓRIO: SERVIÇOS ADICIONAIS");
         Map<String, Object> relatorio = admin.arrecadamentoPorServico();
         Map<String, Object> servicos = (Map<String, Object>) relatorio.get("servicos");
 
         if (servicos == null || servicos.isEmpty()) {
-            System.out.println("Nenhum serviço adicional registrado.");
+            System.out.println("\nNenhum serviço adicional registrado.");
         } else {
+            System.out.println();
+            System.out.printf("%-25s %-12s %-10s%n", "SERVIÇO", "QUANTIDADE", "VALOR");
+            ConsoleUtil.linha();
             servicos.forEach((tipo, info) -> {
                 Map<String, Object> dados = (Map<String, Object>) info;
                 int quantidade = (int) dados.get("quantidade");
                 double valorTotal = (double) dados.get("valorTotal");
-                System.out.println(tipo + " | Quantidade: " + quantidade + " | Valor arrecadado: R$ " + String.format("%.2f", valorTotal));
+                System.out.printf("%-25s %-12d %-10s%n", tipo, quantidade, String.format("R$ %.2f", valorTotal));
             });
         }
+        ConsoleUtil.respiro();
     }
 }
