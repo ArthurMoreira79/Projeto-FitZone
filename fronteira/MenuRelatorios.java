@@ -38,8 +38,6 @@ public class MenuRelatorios {
                     case 0 -> {} /* volta ao menu principal */
                     default -> System.out.println("Opção inválida.");
                 }
-            } catch (NumberFormatException e) {
-                System.out.println("Erro: Entrada numérica inválida.");
             } catch (Exception e) {
                 System.out.println("Erro inesperado: " + e.getMessage());
             }
@@ -48,7 +46,7 @@ public class MenuRelatorios {
 
     private void relatorioPorAluno() {
         ConsoleUtil.subtitulo("RELATÓRIO: AGENDAMENTOS POR ALUNO");
-        String cpf = leitor.lerTextoObrigatorio("CPF do Aluno: ");
+        String cpf = leitor.lerCpf("CPF do Aluno (11 dígitos): ");
 
         List<Agendamento> agendamentos = admin.relatorioPorAluno(cpf);
 

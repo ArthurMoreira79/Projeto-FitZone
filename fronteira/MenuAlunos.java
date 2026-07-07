@@ -37,8 +37,6 @@ public class MenuAlunos {
                     case 0 -> {} /* volta ao menu principal */
                     default -> System.out.println("Opção inválida.");
                 }
-            } catch (NumberFormatException e) {
-                System.out.println("Erro: Entrada numérica inválida.");
             } catch (AlunoJaCadastradoException | AlunoNaoEncontradoException e) {
                 System.out.println("Erro: " + e.getMessage());
             } catch (FalhaPersistenciaException e) {
@@ -54,7 +52,7 @@ public class MenuAlunos {
      */
     private void cadastrar() throws AlunoJaCadastradoException, FalhaPersistenciaException {
         ConsoleUtil.subtitulo("CADASTRO DE ALUNO");
-        String cpf = leitor.lerTextoObrigatorio("CPF: ");
+        String cpf = leitor.lerCpf("CPF (11 dígitos): ");
         String nome = leitor.lerTextoObrigatorio("Nome: ");
         String email = leitor.lerTextoObrigatorio("Email: ");
         String telefone = leitor.lerTextoObrigatorio("Telefone: ");
@@ -69,7 +67,7 @@ public class MenuAlunos {
      */
     private void buscar() throws AlunoNaoEncontradoException {
         ConsoleUtil.subtitulo("BUSCAR ALUNO");
-        String cpf = leitor.lerTextoObrigatorio("CPF: ");
+        String cpf = leitor.lerCpf("CPF (11 dígitos): ");
 
         Aluno aluno = admin.buscarAluno(cpf);
         System.out.println();

@@ -40,8 +40,6 @@ public class MenuAgendamentos {
                     case 0 -> {} /* volta ao menu principal */
                     default -> System.out.println("Opção inválida.");
                 }
-            } catch (NumberFormatException e) {
-                System.out.println("Erro: Entrada numérica inválida.");
             } catch (Exception e) {
                 System.out.println("Erro: " + e.getMessage());
             }
@@ -60,7 +58,7 @@ public class MenuAgendamentos {
     private void novaReserva() throws Exception {
         ConsoleUtil.subtitulo("NOVO AGENDAMENTO");
 
-        String cpf = leitor.lerTextoObrigatorio("CPF do Aluno: ");
+        String cpf = leitor.lerCpf("CPF do Aluno (11 dígitos): ");
         Aluno aluno = admin.buscarAluno(cpf);
 
         String idAmbiente = leitor.lerTextoObrigatorio("ID do Ambiente: ");
@@ -69,11 +67,11 @@ public class MenuAgendamentos {
             throw new IllegalArgumentException("Ambiente com ID '" + idAmbiente + "' não encontrado.");
         }
 
-        LocalDate data = leitor.lerData("Data (AAAA-MM-DD): ");
+        LocalDate data = leitor.lerDataNaoAnterior("Data (AAAA-MM-DD): ");
 
         LocalTime inicio = leitor.lerHora("Início (HH:MM): ");
 
-        LocalTime fim = leitor.lerHora("Fim (HH:MM): ");
+        LocalTime fim = leitor.lerHoraApos("Fim (HH:MM): ", inicio);
 
         int idAgendamento = admin.gerarIdAgendamento();
         Agendamento agendamento = new Agendamento(idAgendamento, aluno, ambiente, data, inicio, fim);
@@ -116,7 +114,7 @@ public class MenuAgendamentos {
                     System.out.println("Personal Trainer adicionado. (+R$50,00)");
                 }
                 case 4 -> {
-                    int qtd = leitor.lerInteiro("Quantidade de lockers: ");
+                    int qtd = leitor.lerInteiroPositivo("Quantidade de lockers: ");
                     agendamento.adicionarServico(new LockerAcademia(qtd));
                     System.out.println("Locker adicionado. (+R$" + (qtd * 5.0) + ")");
                 }
@@ -144,7 +142,7 @@ public class MenuAgendamentos {
             case 2 -> new Nutricionista();
             case 3 -> new PersonalTrainer();
             case 4 -> {
-                int qtd = leitor.lerInteiro("Quantidade de lockers: ");
+                int qtd = leitor.lerInteiroPositivo("Quantidade de lockers: ");
                 yield new LockerAcademia(qtd);
             }
             default -> throw new ServicoInvalidoException("Opção de serviço inexistente.");

@@ -35,8 +35,6 @@ public class MenuAmbientes {
                     case 0 -> {} /* volta ao menu principal */
                     default -> System.out.println("Opção inválida.");
                 }
-            } catch (NumberFormatException e) {
-                System.out.println("Erro: Valor numérico inválido.");
             } catch (FalhaPersistenciaException e) {
                 System.out.println("Erro ao salvar dados: " + e.getMessage());
             } catch (AmbienteJaCadastradoException e) {

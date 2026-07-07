@@ -29,7 +29,7 @@ public class MenuPrincipal {
             System.out.println("3. Agendamentos e Serviços");
             System.out.println("4. Relatórios");
             System.out.println("0. Sair");
-            System.out.print("\nEscolha: ");
+            
             try {
                 opcao = leitor.lerInteiro("Escolha: ");
                 switch (opcao) {
@@ -40,8 +40,6 @@ public class MenuPrincipal {
                     case 0 -> System.out.println("\nEncerrando...");
                     default -> System.out.println("Opção inválida.");
                 }
-            } catch (NumberFormatException e) {
-                System.out.println("Erro: Entrada inválida.");
             } catch (Exception e) {
                 System.out.println("Erro inesperado: " + e.getMessage());
             }
