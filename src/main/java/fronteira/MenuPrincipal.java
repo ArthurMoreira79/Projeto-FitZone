@@ -1,6 +1,7 @@
 package fronteira;
 
 import java.util.Scanner;
+
 import controle.AdministradorSistema;
 
 public class MenuPrincipal {
@@ -37,7 +38,7 @@ public class MenuPrincipal {
                     case 2 -> new MenuAmbientes(admin, leitor).exibir();
                     case 3 -> new MenuAgendamentos(admin, leitor).exibir();
                     case 4 -> new MenuRelatorios(admin, leitor).exibir();
-                    case 0 -> System.out.println("\nEncerrando...");
+                    case 0 -> System.out.println("\nEncerrando o sistema...");
                     default -> System.out.println("Opção inválida.");
                 }
             } catch (Exception e) {

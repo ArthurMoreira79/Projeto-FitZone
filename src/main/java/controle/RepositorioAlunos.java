@@ -2,6 +2,7 @@ package controle;
 
 import entidades.Aluno;
 import excecoes.FalhaPersistenciaException;
+
 import java.io.*;
 import java.util.*;
 
@@ -45,8 +46,7 @@ public class RepositorioAlunos implements Serializable{
     }
 
     /**
-     * Desserializa o mapa de alunos a partir do arquivo alunos.dat.
-     * Se o arquivo não existir, o sistema inicia com o mapa vazio.
+     * Desserializa o mapa de alunos a partir do arquivo alSe o arquivo não existir, o sistema inicia com o mapa vazio.
      * Se existir mas estiver corrompido, lança FalhaPersistenciaException.
      */
     @SuppressWarnings("unchecked")

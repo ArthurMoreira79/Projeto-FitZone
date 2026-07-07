@@ -1,9 +1,10 @@
 package fronteira;
 
 import java.util.List;
+
 import controle.AdministradorSistema;
-import excecoes.*;
 import entidades.*;
+import excecoes.*;
 
 public class MenuAmbientes {
 
@@ -32,7 +33,7 @@ public class MenuAmbientes {
                 switch (opcao) {
                     case 1 -> cadastrar();
                     case 2 -> listar();
-                    case 0 -> {} /* volta ao menu principal */
+                    case 0 -> {}
                     default -> System.out.println("Opção inválida.");
                 }
             } catch (FalhaPersistenciaException e) {

@@ -2,6 +2,7 @@ package controle;
 
 import entidades.Agendamento;
 import excecoes.FalhaPersistenciaException;
+
 import java.io.*;
 import java.util.*;
 
@@ -69,8 +70,7 @@ public class RepositorioAgendamentos implements Serializable{
     }
 
     /**
-     * Desserializa o mapa de agendamentos e o proximoId a partir do arquivo agendamentos.dat.
-     * Se o arquivo não existir, inicia tudo zerado.
+     * Desserializa o mapa de agendamentos e o proximoId a partir do arquivo agendameSe o arquivo não existir, inicia tudo zerado.
      * Se existir mas estiver corrompido, lança FalhaPersistenciaException.
      */
     @SuppressWarnings("unchecked")

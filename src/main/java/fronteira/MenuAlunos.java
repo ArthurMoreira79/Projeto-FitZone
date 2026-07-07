@@ -2,8 +2,9 @@ package fronteira;
 
 import java.util.List;
 import java.time.LocalDate;
-import entidades.Aluno;
+
 import controle.AdministradorSistema;
+import entidades.Aluno;
 import excecoes.*;
 
 public class MenuAlunos {

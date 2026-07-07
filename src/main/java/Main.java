@@ -1,7 +1,6 @@
-
 import controle.*;
-import fronteira.*;
 import excecoes.*;
+import fronteira.*;
 
 public class Main {
 

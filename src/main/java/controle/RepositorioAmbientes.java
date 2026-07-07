@@ -2,6 +2,7 @@ package controle;
 
 import entidades.Ambiente;
 import excecoes.FalhaPersistenciaException;
+
 import java.io.*;
 import java.util.*;
 
@@ -44,8 +45,7 @@ public class RepositorioAmbientes implements Serializable{
     }
 
     /**
-     * Desserializa o mapa de ambiente a partir do arquivo ambientes.dat.
-     * Se o arquivo não existir, inicia com o mapa vazio.
+     * Desserializa o mapa de ambiente a partir do arquivo ambieSe o arquivo não existir, inicia com o mapa vazio.
      * Se existir mas estiver corrompido, lança FalhaPersistenciaException.
      */
     @SuppressWarnings("unchecked")

@@ -2,6 +2,7 @@ package fronteira;
 
 import java.util.List;
 import java.util.Map;
+
 import controle.AdministradorSistema;
 import entidades.Agendamento;
 
@@ -35,7 +36,7 @@ public class MenuRelatorios {
                     case 2 -> relatorioPorAmbiente();
                     case 3 -> relatorioFaturamento();
                     case 4 -> arrecadamentoPorServico();
-                    case 0 -> {} /* volta ao menu principal */
+                    case 0 -> {}
                     default -> System.out.println("Opção inválida.");
                 }
             } catch (Exception e) {
