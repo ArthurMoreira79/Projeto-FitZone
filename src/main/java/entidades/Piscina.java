@@ -1,5 +1,11 @@
 package entidades;
 
+/**
+ * 
+ * Piscina
+ * piscina com valor fixo por fora
+ */
+
 public class Piscina extends Ambiente{
     
     private static final long serialVersionUID = 1L;

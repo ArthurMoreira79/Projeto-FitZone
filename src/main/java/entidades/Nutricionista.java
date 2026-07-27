@@ -1,5 +1,8 @@
 package entidades;
 
+/**
+ * Serviço de consulta com nutricionista, com valor fixo por consulta.
+ */
 public class Nutricionista implements ServicoAdicional{
     
     private static final long serialVersionUID = 1L;

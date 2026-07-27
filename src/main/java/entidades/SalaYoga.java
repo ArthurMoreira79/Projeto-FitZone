@@ -1,5 +1,11 @@
 package entidades;
 
+/**
+ * 
+ * SalaYoga
+ * sala de yoga com valor fixo por hora
+ */
+
 public class SalaYoga extends Ambiente{
     
     private static final long serialVersionUID = 1L;

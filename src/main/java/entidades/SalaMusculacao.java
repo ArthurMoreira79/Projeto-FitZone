@@ -1,5 +1,11 @@
 package entidades;
 
+/**
+ * 
+ * SalaMusculacao
+ * sala de musculação com valor fixo por hora
+ */
+
 public class SalaMusculacao extends Ambiente{
 
     private static final long serialVersionUID = 1L;

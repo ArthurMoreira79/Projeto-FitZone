@@ -1,5 +1,10 @@
 package entidades;
 
+
+/**
+ * Serviço de avaliação física, com valor fixo por sessão (não varia por
+ * quantidade ou duração).
+ */
 public class AvaliacaoFisica implements ServicoAdicional{
     
     private static final long serialVersionUID = 1L;

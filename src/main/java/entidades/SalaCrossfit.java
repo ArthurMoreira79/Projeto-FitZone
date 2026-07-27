@@ -1,5 +1,11 @@
 package entidades;
 
+/**
+ * 
+ * SalaCrossfit
+ * sala de crossfit com valor fixo por hora
+ */
+
 public class SalaCrossfit extends Ambiente{
     
     private static final long serialVersionUID = 1L;

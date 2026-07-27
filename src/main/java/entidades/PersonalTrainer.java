@@ -1,5 +1,9 @@
 package entidades;
 
+/**
+ * Serviço de acompanhamento com personal trainer, com valor fixo por hora
+ * de agendamento.
+ */
 public class PersonalTrainer implements ServicoAdicional{
     
     private static final long serialVersionUID = 1L;
