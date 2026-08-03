@@ -22,8 +22,8 @@ O que já está implementado e funcionando:
 
 Pequenos ajustes que valem a pena resolver **antes** de começar a mexer em banco de dados ou interface nova, pra não carregar dívida técnica adiante:
 
-- [ ] Decidir sobre o atributo `disponivel` do `Ambiente`: usar de verdade (ex. marcar ambiente em manutenção) ou remover de vez — hoje ele não existe mais na classe, então é só confirmar que isso não aparece como pendência no diagrama entregue.
-- [ ] Criar uma exceção própria para "ID de ambiente já cadastrado" em vez de reaproveitar `AmbienteIndisponivelException` (que semanticamente é sobre disponibilidade de horário, não duplicidade de cadastro).
+- [✔ ] Decidir sobre o atributo `disponivel` do `Ambiente`: usar de verdade (ex. marcar ambiente em manutenção) ou remover de vez — hoje ele não existe mais na classe, então é só confirmar que isso não aparece como pendência no diagrama entregue.
+- [✔ ] Criar uma exceção própria para "ID de ambiente já cadastrado" em vez de reaproveitar `AmbienteIndisponivelException` (que semanticamente é sobre disponibilidade de horário, não duplicidade de cadastro).
 - [ ] Documentar um roteiro de testes manuais (checklist: reserva sobreposta, cancelamento de reserva inexistente, CPF duplicado, serviço inválido, arquivo `.dat` corrompido) — útil tanto pra você validar quanto pra apresentar na arguição.
 
 ---
@@ -34,10 +34,10 @@ A ideia aqui é evoluir em fases, sem misturar muita coisa nova de uma vez. Cada
 
 ### Fase 1 — Robustez e boas práticas (curto prazo, ainda em Java puro)
 
-- Validações de entrada mais completas na camada de fronteira: formato de CPF, datas no passado, hora fim menor que hora início, quantidade de lockers negativa etc.
-- Javadoc nas classes principais (`AdministradorSistema`, `Agendamento`, `Ambiente`) — treina documentação de API, útil pra qualquer projeto futuro.
-- Testes automatizados com **JUnit 5** para a camada de controle, cobrindo as regras de negócio (sobreposição de horário, cálculo de valor total, exceções lançadas nos casos certos).
-- Centralizar tratamento de erro de entrada (hoje cada menu repete `try/catch` parecido) — dá pra criar um pequeno utilitário de leitura validada (`lerInteiro()`, `lerData()`) reaproveitável entre os menus.
+✔ - Validações de entrada mais completas na camada de fronteira: formato de CPF, datas no passado, hora fim menor que hora início, quantidade de lockers negativa etc.
+✔ - Javadoc nas classes principais (`AdministradorSistema`, `Agendamento`, `Ambiente`) — treina documentação de API, útil pra qualquer projeto futuro.
+✔ - Testes automatizados com **JUnit 5** para a camada de controle, cobrindo as regras de negócio (sobreposição de horário, cálculo de valor total, exceções lançadas nos casos certos).
+✔ - Centralizar tratamento de erro de entrada (hoje cada menu repete `try/catch` parecido) — dá pra criar um pequeno utilitário de leitura validada (`lerInteiro()`, `lerData()`) reaproveitável entre os menus.
 
 ### Fase 2 — Persistência com banco de dados relacional
 
