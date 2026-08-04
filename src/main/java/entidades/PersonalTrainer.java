@@ -1,10 +1,16 @@
 package entidades;
 
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+
 /**
  * Serviço de acompanhamento com personal trainer, com valor fixo por hora
  * de agendamento.
  */
-public class PersonalTrainer implements ServicoAdicional{
+
+@Entity
+@DiscriminatorValue("PERSONAL_TRAINER")
+public class PersonalTrainer extends ServicoAdicional{
     
     private static final long serialVersionUID = 1L;
 

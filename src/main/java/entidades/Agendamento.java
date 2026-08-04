@@ -1,5 +1,17 @@
 package entidades;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+
 import java.io.Serializable;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -8,21 +20,48 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+@Entity
+@Table(name = "agendamentos")
 public class Agendamento implements Serializable{
     
     private static final long serialVersionUID = 1L;
 
-    private int id;
+    /*
+     * Fase 2: o ID deixou de ser gerado manualmente (RepositorioAgendamentos.gerarProximoId())
+     * e passou a ser AUTO_INCREMENT no MySQL. Por isso é Integer (aceita null antes do
+     * INSERT) em vez de int primitivo, e não existe mais no construtor de negócio -
+     * o Hibernate preenche esse campo sozinho assim que o objeto é persistido.
+     */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "aluno_cpf", nullable = false)
     private Aluno aluno;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "ambiente_id", nullable = false)
     private Ambiente ambiente;
+
+    @Column(name = "data_agendamento", nullable = false)
     private LocalDate dataAgendamento;
+
+    @Column(name = "hora_inicio", nullable = false)
     private LocalTime horaInicio;
+
+    @Column(name = "hora_fim", nullable = false)
     private LocalTime horaFim;
+
+    @Column(name = "valor_total", nullable = false)
     private double valorTotal;
+
+    @OneToMany(mappedBy = "agendamento", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ServicoAdicional> servicosAdicionais;
 
-    public Agendamento(int id, Aluno aluno, Ambiente ambiente, LocalDate dataAgendamento, LocalTime horaInicio, LocalTime horaFim){
-        this.id = id;
+    protected Agendamento() { } // exigido pelo JPA
+
+    public Agendamento(Aluno aluno, Ambiente ambiente, LocalDate dataAgendamento, LocalTime horaInicio, LocalTime horaFim){
         this.aluno = aluno;
         this.ambiente = ambiente;
         this.dataAgendamento = dataAgendamento;
@@ -52,13 +91,19 @@ public class Agendamento implements Serializable{
     }
 
     public void adicionarServico(ServicoAdicional servico) {
+        servico.setAgendamento(this);
         this.servicosAdicionais.add(servico);
         recalcularValorTotal();
     }
 
     /** Getters e Setters */
 
-    public int getId() { return id; }
+    /**
+     * Retorna o ID do agendamento. Antes de o agendamento ser persistido
+     * (INSERT no banco), o Hibernate ainda não gerou o valor, então retorna 0
+     * (igual ao comportamento antigo com int primitivo) em vez de lançar NPE.
+     */
+    public int getId() { return id != null ? id : 0; }
     public Aluno getAluno() { return aluno; }
     public Ambiente getAmbiente() { return ambiente; }
     public LocalDate getDataAgendamento() { return dataAgendamento; }

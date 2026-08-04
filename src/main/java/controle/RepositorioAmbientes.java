@@ -2,63 +2,59 @@ package controle;
 
 import entidades.Ambiente;
 import excecoes.FalhaPersistenciaException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceException;
 
-import java.io.*;
 import java.util.*;
 
-public class RepositorioAmbientes implements Serializable{
-
-    private static final long serialVersionUID = 1L;
-    private Map<String, Ambiente> ambientes = new HashMap<>();
-    private final String CAMINHO = "ambientes.dat";
-
-    public RepositorioAmbientes() throws FalhaPersistenciaException { carregarArquivo(); }
-
-    /**
-     * Insere um ambiente no mapa usando o id.
-     */
-    public void inserir(Ambiente a) throws FalhaPersistenciaException{
-        ambientes.put(a.getId(), a);
-        salvarArquivo();
-    }
+/**
+ * Repositório de Ambientes.
+ *
+ * Fase 2: persistência via JPA/Hibernate em vez de arquivo serializado.
+ * Ambiente é uma hierarquia (SalaMusculacao, SalaYoga, SalaCrossfit, Piscina)
+ * mapeada com herança SINGLE_TABLE - o Hibernate resolve sozinho qual
+ * subclasse instanciar com base na coluna discriminadora "tipo".
+ */
+public class RepositorioAmbientes {
 
     /**
-     * Busca e retorna um ambiente pelo id.
+     * Insere um novo ambiente no banco.
      */
-    public Ambiente buscar(String id) { return ambientes.get(id); }
-
-    /**
-     * Retorna uma lista com todos os ambientes.
-     */
-    public List<Ambiente> listarTodos() { return new ArrayList<>(ambientes.values()); }
-
-    /**
-     * Serializa o mapa de ambientes para o arquivo ambientes.dat.
-     * Lança FalhaPersistenciaException se ocorrer erro de I/O.
-     */
-    private void salvarArquivo() throws FalhaPersistenciaException{
-        try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(CAMINHO))){
-            oos.writeObject(ambientes);
-        } catch(IOException e){
-            throw new FalhaPersistenciaException("Erro ao salvar ambientes.");
+    public void inserir(Ambiente a) throws FalhaPersistenciaException {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(a);
+            em.getTransaction().commit();
+        } catch (PersistenceException e) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            throw new FalhaPersistenciaException("Erro ao salvar ambiente no banco de dados.");
+        } finally {
+            em.close();
         }
     }
 
     /**
-     * Desserializa o mapa de ambiente a partir do arquivo ambieSe o arquivo não existir, inicia com o mapa vazio.
-     * Se existir mas estiver corrompido, lança FalhaPersistenciaException.
+     * Busca e retorna um ambiente pelo id, ou null se não existir.
      */
-    @SuppressWarnings("unchecked")
-    private void carregarArquivo() throws FalhaPersistenciaException{
-        File file = new File(CAMINHO);
-        if(file.exists()){
-            try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))){
-                ambientes = (Map<String, Ambiente>) ois.readObject();
-            } catch(IOException | ClassNotFoundException e){
-                throw new FalhaPersistenciaException("Erro ao carregar o arquivo de ambientes.");
-            }
-        } else {
-            ambientes = new HashMap<>();
+    public Ambiente buscar(String id){
+        EntityManager em = JPAUtil.getEntityManager();
+        try{
+            return em.find(Ambiente.class, id);
+        } finally{
+            em.close();
         }
-    }    
+    }
+
+    /**
+     * Retorna uma lista com todos os ambientes cadastrados.
+     */
+    public List<Ambiente> listarTodos(){
+       EntityManager em = JPAUtil.getEntityManager();
+       try{
+        return em.createQuery("SELECT a FROM Ambiente a", Ambiente.class).getResultList();
+       } finally{
+        em.close();
+       }
+    }
 }

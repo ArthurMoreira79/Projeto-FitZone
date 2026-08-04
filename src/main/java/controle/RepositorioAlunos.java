@@ -2,64 +2,60 @@ package controle;
 
 import entidades.Aluno;
 import excecoes.FalhaPersistenciaException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceException;
 
-import java.io.*;
 import java.util.*;
 
-public class RepositorioAlunos implements Serializable{
-    
-    private static final long serialVersionUID = 1L;
-
-    private Map<String, Aluno> alunos = new HashMap<>();
-    private final String CAMINHO = "alunos.dat";
-
-    public RepositorioAlunos() throws FalhaPersistenciaException { carregarArquivo(); }
+/**
+ * Repositório de Alunos.
+ *
+ * Fase 2: a persistência deixou de ser em arquivo (.dat serializado) e passou
+ * a ser em banco de dados relacional (MySQL) via JPA/Hibernate. As assinaturas
+ * dos métodos públicos foram mantidas idênticas às da Fase 1 de propósito -
+ * é o Repository Pattern na prática: o AdministradorSistema não precisa saber
+ * (nem mudar) como os dados são guardados por baixo dos panos.
+ */
+public class RepositorioAlunos {
 
     /**
-     * Insere um aluno ao mapa usando cpf.
+     * Insere um novo aluno no banco.
      */
     public void inserir(Aluno a) throws FalhaPersistenciaException{
-        alunos.put(a.getCpf(), a);
-        salvarArquivo();
-    }
-
-    /**
-     * Busca e retorna um aluno pelo cpf.
-     */
-    public Aluno buscar(String cpf) { return alunos.get(cpf); }
-
-    /**
-     * Retorna uma lista com todos os alunos
-     */
-    public List<Aluno> listarTodos() { return new ArrayList<>(alunos.values()); }
-
-    /**
-     * Serializa o mapa de alunos para o arquivo alunos.dat.
-     * Lança FalhaPersistenciaException em caso de falha de I/O.
-     */
-    private void salvarArquivo() throws FalhaPersistenciaException{
-        try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(CAMINHO))){
-            oos.writeObject(alunos);
-        } catch(IOException e){
-            throw new FalhaPersistenciaException("Erro ao salvar alunos.");
+        EntityManager em = JPAUtil.getEntityManager();
+        try{
+            em.getTransaction().begin();
+            em.persist(a);
+            em.getTransaction().commit();
+        } catch (PersistenceException e) {
+            if(em.getTransaction().isActive()) em.getTransaction().rollback();
+            throw new FalhaPersistenciaException("Erro ao salvar aluno no banco de dados.");
+        } finally {
+            em.close();
         }
     }
 
     /**
-     * Desserializa o mapa de alunos a partir do arquivo alSe o arquivo não existir, o sistema inicia com o mapa vazio.
-     * Se existir mas estiver corrompido, lança FalhaPersistenciaException.
+     * Busca e retorna um aluno pelo cpf, ou null se não existir.
      */
-    @SuppressWarnings("unchecked")
-    private void carregarArquivo() throws FalhaPersistenciaException{
-        File file = new File(CAMINHO);
-        if(file.exists()){
-            try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))){
-                alunos = (Map<String, Aluno>) ois.readObject();
-            } catch(IOException | ClassNotFoundException e){
-                throw new FalhaPersistenciaException("Erro ao carregar o arquivo de alunos.");
-            }
-        } else {
-            alunos = new HashMap<>();
+    public Aluno buscar(String cpf) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try{
+            return em.find(Aluno.class, cpf);
+        } finally{
+            em.close();
+        }
+    }
+
+    /**
+     * Retorna uma lista com todos os alunos cadastrados.
+     */
+    public List<Aluno> listarTodos(){
+        EntityManager em = JPAUtil.getEntityManager();
+        try{
+            return em.createQuery("SELECT a FROM Aluno a", Aluno.class).getResultList();
+        } finally{
+            em.close();
         }
     }
 }

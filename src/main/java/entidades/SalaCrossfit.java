@@ -1,16 +1,24 @@
 package entidades;
 
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+
 /**
  * 
  * SalaCrossfit
  * sala de crossfit com valor fixo por hora
  */
 
+@Entity
+@DiscriminatorValue("CROSSFIT")
+
 public class SalaCrossfit extends Ambiente{
     
     private static final long serialVersionUID = 1L;
 
     private static final double VALOR_HORA_FIXO = 100.0;
+
+    protected SalaCrossfit() {}
 
     public SalaCrossfit(String id, String nome){
         super(id, nome, VALOR_HORA_FIXO);

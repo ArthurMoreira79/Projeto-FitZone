@@ -2,90 +2,96 @@ package controle;
 
 import entidades.Agendamento;
 import excecoes.FalhaPersistenciaException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceException;
 
-import java.io.*;
 import java.util.*;
 
-public class RepositorioAgendamentos implements Serializable{
-    
-    private static final long serialVersionUID = 1L;
-
-    private Map<Integer, Agendamento> agendamentos = new HashMap<>();
-    private final String CAMINHO = "agendamentos.dat";
-    private int proximoId = 1; /** Contador incremental de Ids */
-
-    public RepositorioAgendamentos() throws FalhaPersistenciaException { carregarArquivo(); }
-
-    /**
-     * Retorna o prox ID disponivel e incrementa o contador.
-     */
-    public int gerarProximoId() { return proximoId++; }
+/**
+ * Repositório de Agendamentos.
+ *
+ * Fase 2: persistência via JPA/Hibernate. O antigo contador manual de ID
+ * (gerarProximoId()) deixou de existir aqui - o MySQL agora gera o ID
+ * automaticamente (AUTO_INCREMENT) no momento do INSERT, e o Hibernate
+ * já devolve esse valor preenchido no próprio objeto Agendamento.
+ */
+public class RepositorioAgendamentos {
 
     /**
-     * Insere um novo agendamento no mapa usando o ID.
+     * Insere um novo agendamento no banco(em cascade, também insere os serviços adicionais
+     * já vinculados a ele, graças ao CascadeType.ALL mapeado em Agendamentos.servicosAdicionais).
      */
     public void inserir(Agendamento a) throws FalhaPersistenciaException {
-        agendamentos.put(a.getId(), a);
-        salvarArquivo();
-    }
-
-    /**
-     * Remove um agendamento do mapa usando o ID.
-     */
-    public void remover(int id) throws FalhaPersistenciaException {
-        agendamentos.remove(id);
-        salvarArquivo();
-    }
-
-    /**
-     * Atualiza um agendamento existente no mapa (por exemplo, após adicionar serviços).
-     */
-    public void atualizar(Agendamento a) throws FalhaPersistenciaException {
-        agendamentos.put(a.getId(), a);
-        salvarArquivo();
-    }
-
-    /**
-     * Busca e retorna um agendamento pelo ID.
-     */
-    public Agendamento buscar(int id) { return agendamentos.get(id); }
-
-    /**
-     * Retorna uma lista com todos os agendamentos
-     */
-    public List<Agendamento> listarTodos() { return new ArrayList<>(agendamentos.values()); }
-
-    /**
-     * Serializa o mapa de agendamentos para o arquivo agendamentos.dat.
-     * Ambos são escritos em sequência para que o ID seja restaurado corretamente.
-     * Lança FalhaPersistenciaException se ocorrer erro de I/O.
-     */
-    private void salvarArquivo() throws FalhaPersistenciaException{
-        try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(CAMINHO))){
-            oos.writeObject(agendamentos);
-            oos.writeInt(proximoId);
-        } catch(IOException e){
-            throw new FalhaPersistenciaException("Erro ao salvar agendamentos.");
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(a);
+            em.getTransaction().commit();
+        } catch (PersistenceException e) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            throw new FalhaPersistenciaException("Erro ao salvar agendamento no banco de dados.");
+        } finally {
+            em.close();
         }
     }
 
     /**
-     * Desserializa o mapa de agendamentos e o proximoId a partir do arquivo agendameSe o arquivo não existir, inicia tudo zerado.
-     * Se existir mas estiver corrompido, lança FalhaPersistenciaException.
+     * Remove um agendamento do banco pelo ID (e, em cascata, seus serviços adicionais, graças 
+     * ao orphanRemoval/ON DELETE CASCADE).
      */
-    @SuppressWarnings("unchecked")
-    private void carregarArquivo() throws FalhaPersistenciaException{
-        File file = new File(CAMINHO);
-        if(file.exists()){
-            try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))){
-                agendamentos = (Map<Integer, Agendamento>) ois.readObject();
-                proximoId = ois.readInt();
-            } catch(IOException | ClassNotFoundException e){
-                throw new FalhaPersistenciaException("Erro ao carregar o arquivo de agendamentos.");
-            }
-        } else {
-            agendamentos = new HashMap<>();
-            proximoId = 1;
+    public void remover(int id) throws FalhaPersistenciaException {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            em.getTransaction().begin();
+            Agendamento a = em.find(Agendamento.class, id);
+            if (a != null) em.remove(a);
+            em.getTransaction().commit();
+        } catch (PersistenceException e) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            throw new FalhaPersistenciaException("Erro ao remover agendamento no banco de dados.");
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Atualiza um agendamento existente no banco (por exemplo, após adicionar um novo serviço a ele).
+     */
+    public void atualizar(Agendamento a) throws FalhaPersistenciaException {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.merge(a);
+            em.getTransaction().commit();
+        } catch (PersistenceException e) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            throw new FalhaPersistenciaException("Erro ao atualizar agendamento no banco de dados.");
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Busca e retorna um agendamento pelo ID, ou null se não existir.
+     */
+    public Agendamento buscar(int id) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return em.find(Agendamento.class, id);
+        } finally{
+            em.close();
+        }
+    }
+
+    /**
+     * Retorna uma lista com todos os agendamentos cadastrados.
+     */
+    public List<Agendamento> listarTodos(){
+        EntityManager em = JPAUtil.getEntityManager();
+        try{
+            return em.createQuery("SELECT a FROM Agendamento a", Agendamento.class).getResultList();
+        } finally{
+            em.close();
         }
     }
 }

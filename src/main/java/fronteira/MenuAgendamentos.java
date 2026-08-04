@@ -74,8 +74,10 @@ public class MenuAgendamentos {
 
         LocalTime fim = leitor.lerHoraApos("Fim (HH:MM): ", inicio);
 
-        int idAgendamento = admin.gerarIdAgendamento();
-        Agendamento agendamento = new Agendamento(idAgendamento, aluno, ambiente, data, inicio, fim);
+        // Fase 2: o ID não é mais gerado manualmente aqui - o Hibernate/MySQL
+        // preenche agendamento.getId() automaticamente assim que
+        // admin.realizarAgendamento() persistir o registro no banco.
+        Agendamento agendamento = new Agendamento(aluno, ambiente, data, inicio, fim);
 
         selecionarServicos(agendamento);
 

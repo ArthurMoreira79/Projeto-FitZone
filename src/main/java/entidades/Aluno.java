@@ -1,17 +1,36 @@
 package entidades;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
 import java.io.Serializable;
 import java.time.LocalDate;
 
+@Entity
+@Table(name = "alunos")
 public class Aluno implements Serializable {
     
     private static final long serialVersionUID = 1L;
 
+    @Id
+    @Column(length = 11)
     private String cpf;
+
+    @Column(nullable = false, length = 100)
     private String nome;
+
+    @Column(length = 100)
     private String email;
+
+    @Column(length = 20)
     private String telefone;
+
+    @Column(name = "data_cadastro", nullable = false)
     private LocalDate dataCadastro;
+
+    protected Aluno() {}
 
     public Aluno(String cpf, String nome, String email, String telefone, LocalDate dataCadastro){
         this.cpf = cpf;

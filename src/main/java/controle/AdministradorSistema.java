@@ -13,6 +13,16 @@ public class AdministradorSistema {
     private RepositorioAmbientes repoAmbientes;
 
     public AdministradorSistema() throws FalhaPersistenciaException{
+        // Fase 2: força a inicialização do EntityManagerFactory e valida que o
+        // banco MySQL está acessível já na subida do sistema, preservando o
+        // comportamento da Fase 1 (falhar cedo, com uma mensagem clara, em vez
+        // de só descobrir o problema no primeiro cadastro).
+        try{
+            JPAUtil.getEntityManager().close();
+        } catch (Exception e) {
+            throw new FalhaPersistenciaException("Não foi possível conectar ao banco de dados MySQL. Verifique se ele está no ar e se as credenciais em persistence.xml estão corretas. Detalhe: " + e.getMessage());
+        }
+
         this.repoAlunos = new RepositorioAlunos();
         this.repoAgendamentos = new RepositorioAgendamentos();
         this.repoAmbientes = new RepositorioAmbientes();
@@ -101,11 +111,6 @@ public class AdministradorSistema {
      * Retorna a lista completa de agendamentos.
      */
     public List<Agendamento> listarAgendamentos() { return repoAgendamentos.listarTodos(); }
-
-    /**
-     * Delega ao repositório a geração do próximo ID.
-     */
-    public int gerarIdAgendamento() { return repoAgendamentos.gerarProximoId(); }
 
     /**
      * Adiciona um serviço adicional a um agendamento existente.

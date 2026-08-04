@@ -8,6 +8,11 @@ public class Main {
         System.out.println("===== SISTEMA FITZONE =====");
         System.out.println("Status: Inicializando módulos...");
 
+        // Fase 2: garante que a conexão/pool do Hibernate com o MySQL seja
+        // encerrada de forma limpa, mesmo se o programa for interrompido
+        // (Ctrl+C) ou terminar por uma exceção não tratada.
+        Runtime.getRuntime().addShutdownHook(new Thread(controle.JPAUtil::fechar));
+
         try {
             AdministradorSistema admin = new AdministradorSistema();
             MenuPrincipal menu = new MenuPrincipal(admin);
