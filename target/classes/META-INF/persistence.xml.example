@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
+             version="3.0">
+
+    <persistence-unit name="fitzonePU" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+
+        <class>entidades.Aluno</class>
+        <class>entidades.Ambiente</class>
+        <class>entidades.SalaMusculacao</class>
+        <class>entidades.SalaYoga</class>
+        <class>entidades.SalaCrossfit</class>
+        <class>entidades.Piscina</class>
+        <class>entidades.Agendamento</class>
+        <class>entidades.ServicoAdicional</class>
+        <class>entidades.AvaliacaoFisica</class>
+        <class>entidades.Nutricionista</class>
+        <class>entidades.PersonalTrainer</class>
+        <class>entidades.LockerAcademia</class>
+
+        <exclude-unlisted-classes>true</exclude-unlisted-classes>
+
+        <properties>
+            <property name="jakarta.persistence.jdbc.url"
+                      value="jdbc:mysql://localhost:3306/fitzone?useSSL=false&amp;serverTimezone=America/Sao_Paulo"/>
+            <property name="jakarta.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>
+            <property name="jakarta.persistence.jdbc.user" value="SEU_USER"/>
+            <property name="jakarta.persistence.jdbc.password" value="SUA_SENHA"/>
+
+            <property name="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect"/>
+
+            <!--
+                validate: o Hibernate NUNCA cria/altera tabelas sozinho, apenas
+                confere se o mapeamento bate com o schema existente. Como você
+                pediu para controlar o DDL manualmente, essa é a opção certa.
+                Se o app não subir com erro de "schema-validation", é sinal de
+                que o sql/schema.sql ainda não foi rodado (ou está diferente).
+            -->
+            <property name="hibernate.hbm2ddl.auto" value="validate"/>
+
+            <property name="hibernate.show_sql" value="true"/>
+            <property name="hibernate.format_sql" value="true"/>
+        </properties>
+    </persistence-unit>
+</persistence>
