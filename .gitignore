@@ -1,1 +1,86 @@
+# ==========================================
+# Archivos de Compilación y Build (Maven/Java)
+# ==========================================
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.zip
+*.tar.gz
+*.rar
+
+# ==========================================
+# IDEs e Editores de Código
+# ==========================================
+
+# Eclipse
+.settings/
+.project
+.classpath
+.factorypath
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# NetBeans
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# ==========================================
+# Configurações de Banco de Dados e JPA/Hibernate
+# ==========================================
+# Caso tenha arquivos de log local ou bancos embutidos (H2, Derby, etc.)
+*.db
+*.log
+*.sqlite
+
+# Configurações de conexão locais (caso crie arquivos .env ou .properties locais)
+*.env
+application-local.properties
+
+# ==========================================
+# Arquivos do Sistema Operacional
+# ==========================================
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthmb.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+
+# ==========================================
+# Temp e Logs
+# ==========================================
+*.tmp
+*.bak
+*.swp
+*.log
+logs/
+
+# Arquivo persistence.xml com credenciais reais
 src/main/resources/META-INF/persistence.xml
