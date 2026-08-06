@@ -2,19 +2,18 @@
 
 Projeto desenvolvido a princípio para revisar conceitos da Programação Orientada a Objetos, simulando a gestão de uma academia/estúdio fitness: cadastro de alunos, ambientes reserváveis (sala de musculação, yoga, crossfit, piscina), agendamentos com serviços adicionais (avaliação física, nutricionista, personal trainer, locker) e relatórios de ocupação e faturamento.
 
-Este README documenta o estado atual da v1 e um roadmap de evolução gradual do projeto, já pensando além da revisão.
+Este README documenta o estado atual do projeto e um roadmap de evolução gradual, já pensando além da revisão.
 
 ---
 
-## 1. Estado atual (v1 — entrega da revisão de POO)
+## 1. Estado atual (Fase 2 concluída — persistência com MySQL/JPA)
 
 O que já está implementado e funcionando:
 
-- **Modelagem OO completa**: classe abstrata `Ambiente` com 4 subclasses, interface `ServicoAdicional` com 4 implementações (polimorfismo real, não decorativo).
+- **Modelagem OO completa**: classe abstrata `Ambiente` com 4 subclasses; `ServicoAdicional` (era interface na Fase 1, virou classe abstrata na Fase 2 para poder ser mapeada como entidade JPA) com 4 implementações — o polimorfismo continua real, cada subtipo sobrescreve `getDescricao()`/`getValorTotal()`.
 - **Encapsulamento**: atributos privados, getters/setters, regras de cálculo dentro das próprias entidades (`Agendamento.calculaValorTotal()`).
 - **Exceções customizadas** com mensagens contextuais (`AlunoJaCadastradoException`, `AmbienteIndisponivelException`, `FalhaPersistenciaException`, etc.), tratadas tanto no `AdministradorSistema` quanto nos menus.
-- **Coleções genéricas**: `HashMap` como estrutura de armazenamento nos três repositórios.
-- **Persistência por serialização**: `.dat` salvos automaticamente a cada alteração, usando `ObjectOutputStream`/`ObjectInputStream`.
+- **Persistência com JPA/Hibernate + MySQL** (Fase 2): os três repositórios (`RepositorioAlunos`, `RepositorioAmbientes`, `RepositorioAgendamentos`) usam `EntityManager` para `SELECT`/`INSERT`/`UPDATE`/`DELETE` reais no banco `fitzone`, mantendo a mesma assinatura de métodos da Fase 1 (Repository Pattern na prática — o `AdministradorSistema` quase não mudou). `Ambiente` e `ServicoAdicional` usam herança `SINGLE_TABLE` com coluna discriminadora. O ID de `Agendamento` deixou de ser um contador manual em memória e passou a ser `AUTO_INCREMENT` do MySQL. DDL manual em `sql/schema.sql` (ver seção 3).
 - **Camadas separadas**: `entidades`, `controle`, `fronteira`, `excecoes` — cada uma com responsabilidade única.
 - **Interface textual completa**: cadastro/busca/listagem de alunos, cadastro/listagem de ambientes, criação/cancelamento de agendamentos, adição de serviço a reserva existente, 4 relatórios — tudo com tabelas alinhadas e navegação em loop.
 
@@ -24,7 +23,7 @@ Pequenos ajustes que valem a pena resolver **antes** de começar a mexer em banc
 
 - [✔ ] Decidir sobre o atributo `disponivel` do `Ambiente`: usar de verdade (ex. marcar ambiente em manutenção) ou remover de vez — hoje ele não existe mais na classe, então é só confirmar que isso não aparece como pendência no diagrama entregue.
 - [✔ ] Criar uma exceção própria para "ID de ambiente já cadastrado" em vez de reaproveitar `AmbienteIndisponivelException` (que semanticamente é sobre disponibilidade de horário, não duplicidade de cadastro).
-- [ ] Documentar um roteiro de testes manuais (checklist: reserva sobreposta, cancelamento de reserva inexistente, CPF duplicado, serviço inválido, arquivo `.dat` corrompido) — útil tanto pra você validar quanto pra apresentar na arguição.
+- [✔ ] Documentar um roteiro de testes manuais — feito em `Roteiro.md`, com checklist completo (todas as exceções, todos os relatórios) e atualizado na Fase 2 pra refletir a persistência em MySQL.
 
 ---
 
@@ -39,14 +38,24 @@ A ideia aqui é evoluir em fases, sem misturar muita coisa nova de uma vez. Cada
 ✔ - Testes automatizados com **JUnit 5** para a camada de controle, cobrindo as regras de negócio (sobreposição de horário, cálculo de valor total, exceções lançadas nos casos certos).
 ✔ - Centralizar tratamento de erro de entrada (hoje cada menu repete `try/catch` parecido) — dá pra criar um pequeno utilitário de leitura validada (`lerInteiro()`, `lerData()`) reaproveitável entre os menus.
 
-### Fase 2 — Persistência com banco de dados relacional
+### Fase 2 — Persistência com banco de dados relacional ✔ (concluída)
 
-Trocar a serialização em `.dat` por um banco de verdade é o passo mais natural depois de fechar a v1:
+Trocar a serialização em `.dat` por um banco de verdade:
 
-- Migrar de `ObjectOutputStream`/`ObjectInputStream` para **JDBC + MySQL**, ou já ir direto pra **JPA/Hibernate** (você já tem prática com isso).
-- Modelar as tabelas: `alunos`, `ambientes` (com uma coluna de discriminação pro tipo, se for usar herança em tabela única), `agendamentos`, `servicos_adicionais`.
-- Reescrever os repositórios para fazer `SELECT`/`INSERT`/`UPDATE`/`DELETE` reais, mas **mantendo a mesma assinatura de métodos** que o `AdministradorSistema` já usa — é um ótimo exercício de Repository Pattern: a camada de controle não deveria precisar mudar quase nada.
-- Ponto de atenção: regras como "CPF único" e "sem sobreposição de horário", que hoje são checadas em memória, passam a poder (e dever) ser reforçadas também no banco, via `UNIQUE` e checagens antes do `INSERT`.
+- ✔ Migrado de `ObjectOutputStream`/`ObjectInputStream` para **JPA/Hibernate + MySQL**.
+- ✔ Tabelas modeladas em `sql/schema.sql`: `alunos`, `ambientes` (herança `SINGLE_TABLE`, coluna `tipo`), `agendamentos`, `servicos_adicionais` (herança `SINGLE_TABLE`, coluna `tipo`).
+- ✔ Repositórios reescritos com `EntityManager`, mantendo a mesma assinatura de métodos que o `AdministradorSistema` já usava (Repository Pattern na prática).
+- ✔ `ServicoAdicional` convertida de interface para classe abstrata `@Entity` (decisão registrada: JPA não mapeia interfaces).
+- ✔ ID de `Agendamento` passou de contador manual para `AUTO_INCREMENT` do MySQL.
+- ✔ Otimizada a checagem de sobreposição de horário: `realizarAgendamento` não percorre mais todos os agendamentos em memória — agora usa `RepositorioAgendamentos.buscarConflitos(...)`, uma consulta JPQL que já filtra por ambiente/data/sobreposição direto no banco (normalmente retorna 0 ou 1 linha, em vez da tabela inteira). CPF/ID já são únicos naturalmente pela chave primária.
+- ✔ Roteiro de testes manuais (`Roteiro.md`) atualizado para a Fase 2 (nota sobre comportamento do `AUTO_INCREMENT`, instrução de como simular `FalhaPersistenciaException` com MySQL em vez de `.dat`).
+
+**Bugs encontrados e corrigidos durante a validação da Fase 2** (achados testando o sistema de ponta a ponta contra o MySQL real, não eram específicos de JPA/Hibernate):
+- `LeitorEntrada.lerHoraApos()` tinha a condição de validação invertida — aceitava hora de fim *anterior* à de início e rejeitava horários válidos. Corrigido.
+- `AdministradorSistema.relatorioPorAmbiente()` calculava horas totais sem aplicar o piso mínimo de 1h (mesma regra já usada em `Agendamento.calculaValorTotal()`), o que gerava valores negativos no relatório quando um agendamento tinha fim antes do início (efeito colateral do bug acima). Corrigido para ficar consistente com a mesma regra.
+- `hibernate.show_sql`/`hibernate.format_sql` desligados em `persistence.xml` — estavam poluindo o console com o SQL gerado a cada operação; era útil só durante o desenvolvimento inicial da Fase 2.
+
+- **Decisão consciente, não pendência**: os testes do JUnit viraram testes de integração contra o MySQL real (schema `fitzone`, mesmo usado em desenvolvimento) — rodam mais lento e dependem do banco estar no ar, e `mvn test` limpa as tabelas a cada execução. Avaliamos usar um schema `fitzone_test` separado (ou H2 em memória) só pro escopo de teste, mas decidimos que não vale a complexidade extra por enquanto. Fica registrado como possível evolução futura se o projeto crescer.
 
 ### Fase 3 — Melhorias de interface (ainda em texto)
 
@@ -78,31 +87,42 @@ Duas direções possíveis a partir da Fase 4:
 
 ---
 
-## 3. Como rodar a v1 hoje
+## 3. Como rodar hoje (Fase 2 — Maven + MySQL)
 
-Projeto em pacotes Java puro, sem build tool (Maven/Gradle) por enquanto.
+Pré-requisitos: JDK 21, Maven e um MySQL rodando localmente com o banco `fitzone` já criado.
+
+**Passo 1 — criar as tabelas** (uma vez só, ou sempre que `sql/schema.sql` mudar):
 
 ```bash
-# a partir da raiz do projeto (onde está o Main.java)
-javac -encoding UTF-8 -d bin $(find . -name "*.java")   # Linux/Mac/Git Bash
-java -Dfile.encoding=UTF-8 -cp bin Main
+mysql -u SEU_USUARIO -p fitzone < sql/schema.sql
 ```
 
-No Windows (cmd/PowerShell), gere a lista de arquivos antes:
+**Passo 2 — configurar credenciais**: copie `src/main/resources/META-INF/persistence.xml.example` para `src/main/resources/META-INF/persistence.xml` e troque `USUARIO_AQUI` / `SENHA_AQUI` pelas credenciais do seu MySQL. O `persistence.xml` real fica no `.gitignore` (contém senha em texto puro) — só o `.example` é versionado, como modelo.
 
-```bat
-dir /s /b *.java > sources.txt
-javac -encoding UTF-8 -d bin @sources.txt
-java -Dfile.encoding=UTF-8 -cp bin Main
+**Passo 3 — compilar e rodar**:
+
+```bash
+mvn clean compile
+mvn exec:java -Dexec.mainClass="Main"
+# ou, se preferir gerar o jar:
+mvn clean package
+java -cp target/classes:target/dependency/* Main   # ajuste o classpath das dependências conforme seu Maven
+```
+
+**Rodar os testes** (atenção: agora são testes de integração, batem no MySQL real e limpam as tabelas do schema `fitzone` a cada teste):
+
+```bash
+mvn test
 ```
 
 ## 4. Estrutura de pastas
 
 ```
 fitzone/
-├── entidades/    # modelo de domínio (Aluno, Ambiente e subclasses, Agendamento, ServicoAdicional e implementações)
-├── controle/     # regras de negócio (AdministradorSistema) e repositórios
+├── entidades/    # modelo de domínio (Aluno, Ambiente e subclasses, Agendamento, ServicoAdicional e subclasses) — agora anotado com JPA
+├── controle/     # regras de negócio (AdministradorSistema), repositórios (JPA/EntityManager) e JPAUtil
 ├── fronteira/    # menus da interface textual + ConsoleUtil
 ├── excecoes/     # exceções customizadas do domínio
+├── sql/          # schema.sql — DDL manual das tabelas MySQL
 └── Main.java     # ponto de entrada
 ```

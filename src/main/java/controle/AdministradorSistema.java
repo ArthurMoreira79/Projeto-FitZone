@@ -17,7 +17,7 @@ public class AdministradorSistema {
         // banco MySQL está acessível já na subida do sistema, preservando o
         // comportamento da Fase 1 (falhar cedo, com uma mensagem clara, em vez
         // de só descobrir o problema no primeiro cadastro).
-        try{
+        try {
             JPAUtil.getEntityManager().close();
         } catch (Exception e) {
             throw new FalhaPersistenciaException("Não foi possível conectar ao banco de dados MySQL. Verifique se ele está no ar e se as credenciais em persistence.xml estão corretas. Detalhe: " + e.getMessage());
@@ -88,12 +88,11 @@ public class AdministradorSistema {
      *  Lança AmbienteIndisponivelException se houver conflito.
      */
     public void realizarAgendamento(Agendamento novo) throws AmbienteIndisponivelException, FalhaPersistenciaException {
-        for(Agendamento a : repoAgendamentos.listarTodos()){
-            if(a.getAmbiente().getId().equals(novo.getAmbiente().getId()) && a.getDataAgendamento().equals(novo.getDataAgendamento())){
-                if(novo.getHoraInicio().isBefore(a.getHoraFim()) && novo.getHoraFim().isAfter(a.getHoraInicio())){
-                    throw new AmbienteIndisponivelException("Ambiente já reservado das " + a.getHoraInicio() + " às " + a.getHoraFim());
-                }
-            }
+        List<Agendamento> conflitos = repoAgendamentos.buscarConflitos(
+                novo.getAmbiente().getId(), novo.getDataAgendamento(), novo.getHoraInicio(), novo.getHoraFim());
+        if (!conflitos.isEmpty()) {
+            Agendamento a = conflitos.get(0);
+            throw new AmbienteIndisponivelException("Ambiente já reservado das " + a.getHoraInicio() + " às " + a.getHoraFim());
         }
         novo.recalcularValorTotal();
         repoAgendamentos.inserir(novo);
@@ -157,6 +156,7 @@ public class AdministradorSistema {
             info.put("quantidade", (int) info.getOrDefault("quantidade", 0) + 1);
             
             long horasAgendamento = Duration.between(a.getHoraInicio(), a.getHoraFim()).toHours();
+            if (horasAgendamento <= 0) horasAgendamento = 1; // mesma regra de Agendamento.calculaValorTotal()
             long horasAtuais = (long) info.getOrDefault("horas", 0L);
             info.put("horas", horasAtuais + horasAgendamento);
         }

@@ -5,7 +5,9 @@ import excecoes.FalhaPersistenciaException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceException;
 
-import java.util.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
 
 /**
  * Repositório de Agendamentos.
@@ -18,8 +20,9 @@ import java.util.*;
 public class RepositorioAgendamentos {
 
     /**
-     * Insere um novo agendamento no banco(em cascade, também insere os serviços adicionais
-     * já vinculados a ele, graças ao CascadeType.ALL mapeado em Agendamentos.servicosAdicionais).
+     * Insere um novo agendamento no banco (em cascata, também insere os
+     * serviços adicionais já vinculados a ele, graças ao CascadeType.ALL
+     * mapeado em Agendamento.servicosAdicionais).
      */
     public void inserir(Agendamento a) throws FalhaPersistenciaException {
         EntityManager em = JPAUtil.getEntityManager();
@@ -36,8 +39,8 @@ public class RepositorioAgendamentos {
     }
 
     /**
-     * Remove um agendamento do banco pelo ID (e, em cascata, seus serviços adicionais, graças 
-     * ao orphanRemoval/ON DELETE CASCADE).
+     * Remove um agendamento do banco pelo ID (e, em cascata, seus serviços
+     * adicionais, graças ao orphanRemoval/ON DELETE CASCADE).
      */
     public void remover(int id) throws FalhaPersistenciaException {
         EntityManager em = JPAUtil.getEntityManager();
@@ -55,7 +58,8 @@ public class RepositorioAgendamentos {
     }
 
     /**
-     * Atualiza um agendamento existente no banco (por exemplo, após adicionar um novo serviço a ele).
+     * Atualiza um agendamento existente no banco (por exemplo, após adicionar
+     * um novo serviço adicional a ele).
      */
     public void atualizar(Agendamento a) throws FalhaPersistenciaException {
         EntityManager em = JPAUtil.getEntityManager();
@@ -78,7 +82,34 @@ public class RepositorioAgendamentos {
         EntityManager em = JPAUtil.getEntityManager();
         try {
             return em.find(Agendamento.class, id);
-        } finally{
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Busca, direto no banco, os agendamentos do mesmo ambiente e data que
+     * têm sobreposição de horário com o intervalo informado. Substitui o
+     * antigo padrão de trazer TODOS os agendamentos (listarTodos()) e filtrar
+     * em memória - agora o próprio MySQL faz o filtro, então normalmente
+     * volta 0 ou 1 linha em vez da tabela inteira.
+     */
+    public List<Agendamento> buscarConflitos(String ambienteId, LocalDate data, LocalTime inicio, LocalTime fim) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return em.createQuery(
+                    "SELECT a FROM Agendamento a " +
+                    "WHERE a.ambiente.id = :ambienteId " +
+                    "AND a.dataAgendamento = :data " +
+                    "AND a.horaInicio < :fim " +
+                    "AND a.horaFim > :inicio",
+                    Agendamento.class)
+                .setParameter("ambienteId", ambienteId)
+                .setParameter("data", data)
+                .setParameter("inicio", inicio)
+                .setParameter("fim", fim)
+                .getResultList();
+        } finally {
             em.close();
         }
     }
@@ -86,11 +117,11 @@ public class RepositorioAgendamentos {
     /**
      * Retorna uma lista com todos os agendamentos cadastrados.
      */
-    public List<Agendamento> listarTodos(){
+    public List<Agendamento> listarTodos() {
         EntityManager em = JPAUtil.getEntityManager();
-        try{
+        try {
             return em.createQuery("SELECT a FROM Agendamento a", Agendamento.class).getResultList();
-        } finally{
+        } finally {
             em.close();
         }
     }

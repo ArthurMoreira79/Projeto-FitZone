@@ -1,8 +1,12 @@
 # Roteiro de Testes Manuais — FitZone
 
-Este roteiro cobre todas as funcionalidades do sistema e o disparo de cada exceção customizada (exceto `FalhaPersistenciaException`, que exige simular falha de disco/arquivo corrompido e não é coberta aqui). Use-o como checklist antes da apresentação — e também como guia rápido caso o professor pergunte "o que acontece se eu fizer X".
+Este roteiro cobre todas as funcionalidades do sistema e o disparo de cada exceção customizada. Use-o como checklist antes da apresentação — e também como guia rápido caso o professor pergunte "o que acontece se eu fizer X".
 
 Convenção: **[ ]** = ainda não testado · **[x]** = testado e OK.
+
+> **Nota (Fase 2 — persistência MySQL):** os dados agora ficam em banco MySQL real (via JPA/Hibernate), não mais em arquivos `.dat`. Dois efeitos práticos pra ter em mente ao rodar este roteiro:
+> - Os IDs de agendamento (`AUTO_INCREMENT`) **não resetam sozinhos** ao apagar registros — é normal ver IDs como #7, #8 mesmo numa tabela "vazia" se já rodou testes antes. Isso não é bug, é comportamento padrão de banco relacional.
+> - Rodar `mvn test` limpa as tabelas do schema `fitzone` (é assim que os testes garantem um estado previsível) — não rode os testes automatizados no meio de uma sessão deste roteiro manual, ou vai perder os dados que acabou de cadastrar.
 
 ---
 
@@ -70,7 +74,10 @@ Convenção: **[ ]** = ainda não testado · **[x]** = testado e OK.
 | `AgendamentoNaoEncontradoException` | Agendamentos → Adicionar serviço ou Cancelar, com ID inexistente | TC16, TC19 |
 | `ServicoInvalidoException` | Seleção de serviço (na criação ou ao adicionar depois), com opção fora do menu | TC14, TC17 |
 
-`FalhaPersistenciaException` não está neste roteiro por exigir simular corrupção/indisponibilidade do arquivo `.dat` — se quiser testar depois, um jeito simples é fechar o programa, editar manualmente um dos arquivos `.dat` num editor de texto (corrompendo o conteúdo) e tentar abrir o sistema de novo.
+`FalhaPersistenciaException` não está neste roteiro com um TC numerado por exigir simular indisponibilidade do banco, mas fica documentado como testar: **(Fase 2 — MySQL)** duas formas simples:
+1. Pare o serviço do MySQL local e tente abrir o sistema (`Main`) — o `AdministradorSistema` deve falhar já na inicialização com uma mensagem clara ("Não foi possível conectar ao banco de dados MySQL..."), sem stack trace cru pro usuário.
+2. Ou, com o MySQL rodando normalmente, edite temporariamente a senha em `persistence.xml` para uma incorreta e repita o teste — mesmo resultado esperado.
+Lembre de reverter a alteração depois do teste.
 
 ---
 

@@ -96,8 +96,8 @@ public class LeitorEntrada {
     public LocalTime lerHoraApos(String prompt, LocalTime referencia) {
         while (true) {
             LocalTime hora = lerHora(prompt);
-            if (!hora.isAfter(referencia)) return hora;
-            System.out.println("O horário finald deve ser depois do horário de início (" + referencia + ").");
+            if (hora.isAfter(referencia)) return hora;
+            System.out.println("O horário final deve ser depois do horário de início (" + referencia + ").");
         }
     }
 }
