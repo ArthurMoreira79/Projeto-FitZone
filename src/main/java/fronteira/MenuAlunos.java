@@ -36,14 +36,14 @@ public class MenuAlunos {
                     case 2 -> buscar();
                     case 3 -> listar();
                     case 0 -> {} /* volta ao menu principal */
-                    default -> System.out.println("Opção inválida.");
+                    default -> ConsoleUtil.aviso("Opção inválida.");
                 }
             } catch (AlunoJaCadastradoException | AlunoNaoEncontradoException e) {
-                System.out.println("Erro: " + e.getMessage());
+                ConsoleUtil.erro(e.getMessage());
             } catch (FalhaPersistenciaException e) {
-                System.out.println("Erro ao salvar dados: " + e.getMessage());
+                ConsoleUtil.erro(e.getMessage());
             } catch (Exception e) {
-                System.out.println("Erro inesperado: " + e.getMessage());
+                ConsoleUtil.erro("Erro inesperado: " + e.getMessage());
             }
         }
     }
@@ -59,7 +59,8 @@ public class MenuAlunos {
         String telefone = leitor.lerTextoObrigatorio("Telefone: ");
 
         admin.cadastrarAluno(new Aluno(cpf, nome, email, telefone, LocalDate.now()));
-        System.out.println("\nAluno cadastrado com sucesso!");
+        System.out.println();
+        ConsoleUtil.sucesso("Aluno cadastrado com sucesso!");
         ConsoleUtil.respiro();
     }
 

@@ -39,10 +39,10 @@ public class MenuPrincipal {
                     case 3 -> new MenuAgendamentos(admin, leitor).exibir();
                     case 4 -> new MenuRelatorios(admin, leitor).exibir();
                     case 0 -> System.out.println("\nEncerrando o sistema...");
-                    default -> System.out.println("Opção inválida.");
+                    default -> ConsoleUtil.aviso("Opção inválida.");
                 }
             } catch (Exception e) {
-                System.out.println("Erro inesperado: " + e.getMessage());
+                ConsoleUtil.erro("Erro inesperado: " + e.getMessage());
             }
         }
     }

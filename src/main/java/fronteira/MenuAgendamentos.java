@@ -39,10 +39,10 @@ public class MenuAgendamentos {
                     case 3 -> adicionarServico();
                     case 4 -> listar();
                     case 0 -> {} /* volta ao menu principal */
-                    default -> System.out.println("Opção inválida.");
+                    default -> ConsoleUtil.aviso("Opção inválida.");
                 }
             } catch (Exception e) {
-                System.out.println("Erro: " + e.getMessage());
+                ConsoleUtil.erro(e.getMessage());
             }
         }
     }
@@ -83,7 +83,8 @@ public class MenuAgendamentos {
 
         admin.realizarAgendamento(agendamento);
 
-        System.out.println("\n✔ Agendamento realizado com sucesso!");
+        System.out.println();
+        ConsoleUtil.sucesso("Agendamento realizado com sucesso!");
         ConsoleUtil.linha();
         System.out.println(agendamento);
         ConsoleUtil.respiro();
@@ -106,20 +107,20 @@ public class MenuAgendamentos {
             switch (opcaoServico) {
                 case 1 -> {
                     agendamento.adicionarServico(new AvaliacaoFisica());
-                    System.out.println("Avaliação Física adicionada. (+R$70,00)");
+                    ConsoleUtil.sucesso("Avaliação Física adicionada. (+R$70,00)");
                 }
                 case 2 -> {
                     agendamento.adicionarServico(new Nutricionista());
-                    System.out.println("Nutricionista adicionado. (+R$80,00)");
+                    ConsoleUtil.sucesso("Nutricionista adicionado. (+R$80,00)");
                 }
                 case 3 -> {
                     agendamento.adicionarServico(new PersonalTrainer());
-                    System.out.println("Personal Trainer adicionado. (+R$50,00)");
+                    ConsoleUtil.sucesso("Personal Trainer adicionado. (+R$50,00)");
                 }
                 case 4 -> {
                     int qtd = leitor.lerInteiroPositivo("Quantidade de lockers: ");
                     agendamento.adicionarServico(new LockerAcademia(qtd));
-                    System.out.println("Locker adicionado. (+R$" + (qtd * 5.0) + ")");
+                    ConsoleUtil.sucesso("Locker adicionado. (+R$" + (qtd * 5.0) + ")");
                 }
                 case 0 -> System.out.println("Finalizando escolha de serviços...");
                 default -> throw new ServicoInvalidoException("Opção de serviço inexistente.");
@@ -152,18 +153,35 @@ public class MenuAgendamentos {
         };
 
         admin.adicionarServicoAoAgendamento(id, servico);
-        System.out.println("\nServiço adicionado com sucesso à reserva #" + id + ".");
+        System.out.println();
+        ConsoleUtil.sucesso("Serviço adicionado com sucesso à reserva #" + id + ".");
         ConsoleUtil.respiro();
     }
 
     /**
-     * Solicita o ID de uma reserva e a cancela chamando admin.cancelarAgendamento().
+     * Solicita o ID de uma reserva, mostra o resumo dela e pede confirmação
+     * antes de cancelar de fato (ação destrutiva - não dá pra desfazer).
+     * Se o usuário responder "não", a operação é abortada sem erro.
      */
     private void cancelar() throws AgendamentoNaoEncontradoException, FalhaPersistenciaException {
         ConsoleUtil.subtitulo("CANCELAR AGENDAMENTO");
         int id = leitor.lerInteiro("ID da reserva: ");
+
+        Agendamento agendamento = admin.buscarAgendamento(id);
+        System.out.println();
+        System.out.println(agendamento);
+
+        boolean confirmou = leitor.lerConfirmacao("Tem certeza que deseja cancelar essa reserva? (S/N): ");
+        if (!confirmou) {
+            System.out.println();
+            ConsoleUtil.aviso("Cancelamento abortado. A reserva foi mantida.");
+            ConsoleUtil.respiro();
+            return;
+        }
+
         admin.cancelarAgendamento(id);
-        System.out.println("\nAgendamento #" + id + " cancelado com sucesso.");
+        System.out.println();
+        ConsoleUtil.sucesso("Agendamento #" + id + " cancelado com sucesso.");
         ConsoleUtil.respiro();
     }
 

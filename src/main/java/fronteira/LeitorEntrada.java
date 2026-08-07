@@ -114,4 +114,18 @@ public class LeitorEntrada {
             System.out.println("O horário final deve ser depois do horário de início (" + referencia + ").");
         }
     }
+
+    /**
+     * Lê uma confirmação S/N, insistindo até o usuário responder um dos dois.
+     * Aceita maiúscula/minúscula ("s", "S", "sim", "n", "N", "não"...).
+     */
+    public boolean lerConfirmacao(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String resposta = leitor.nextLine().trim().toLowerCase();
+            if (resposta.equals("s") || resposta.equals("sim")) return true;
+            if (resposta.equals("n") || resposta.equals("nao") || resposta.equals("não")) return false;
+            System.out.println("Resposta inválida. Digite S para sim ou N para não.");
+        }
+    }
 }

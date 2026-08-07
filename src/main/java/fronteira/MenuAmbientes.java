@@ -34,16 +34,16 @@ public class MenuAmbientes {
                     case 1 -> cadastrar();
                     case 2 -> listar();
                     case 0 -> {}
-                    default -> System.out.println("Opção inválida.");
+                    default -> ConsoleUtil.aviso("Opção inválida.");
                 }
             } catch (FalhaPersistenciaException e) {
-                System.out.println("Erro ao salvar dados: " + e.getMessage());
+                ConsoleUtil.erro(e.getMessage());
             } catch (AmbienteJaCadastradoException e) {
-                System.out.println("Erro: " + e.getMessage());
+                ConsoleUtil.erro(e.getMessage());
             } catch (LimiteAmbienteExcedidoException e) {
-                System.out.println("Erro: " + e.getMessage());
+                ConsoleUtil.erro(e.getMessage());
             } catch (Exception e) {
-                System.out.println("Erro inesperado: " + e.getMessage());
+                ConsoleUtil.erro("Erro inesperado: " + e.getMessage());
             }
         }
     }
@@ -73,7 +73,8 @@ public class MenuAmbientes {
         String observacoes = leitor.lerTextoOpcional("Observações (opcional, até 200 caracteres): ", 200);
 
         Ambiente ambiente = admin.cadastrarAmbiente(tipo, observacoes);
-        System.out.println("\n" + ambiente.getNome() + " criado com sucesso!");
+        System.out.println();
+        ConsoleUtil.sucesso(ambiente.getNome() + " criado com sucesso!");
         ConsoleUtil.respiro();
     }
 

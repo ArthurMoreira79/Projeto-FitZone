@@ -130,6 +130,15 @@ public class AdministradorSistema {
     }
 
     /**
+     * Busca um agendamento pelo ID. Lança AgendamentoNaoEncontradoException se não existir.
+     */
+    public Agendamento buscarAgendamento(int id) throws AgendamentoNaoEncontradoException {
+        Agendamento a = repoAgendamentos.buscar(id);
+        if (a == null) throw new AgendamentoNaoEncontradoException("Agendamento não encontrado.");
+        return a;
+    }
+
+    /**
      * Cancela o agendamento pelo ID.
      */
     public void cancelarAgendamento(int id) throws AgendamentoNaoEncontradoException, FalhaPersistenciaException { 

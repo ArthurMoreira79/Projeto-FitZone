@@ -37,10 +37,10 @@ public class MenuRelatorios {
                     case 3 -> relatorioFaturamento();
                     case 4 -> arrecadamentoPorServico();
                     case 0 -> {}
-                    default -> System.out.println("Opção inválida.");
+                    default -> ConsoleUtil.aviso("Opção inválida.");
                 }
             } catch (Exception e) {
-                System.out.println("Erro inesperado: " + e.getMessage());
+                ConsoleUtil.erro("Erro inesperado: " + e.getMessage());
             }
         }
     }

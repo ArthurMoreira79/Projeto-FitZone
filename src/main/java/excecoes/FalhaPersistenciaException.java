@@ -9,6 +9,6 @@ public class FalhaPersistenciaException extends Exception{
      */
 
     public FalhaPersistenciaException(String mensagem){
-        super("Erro crítico ao salvar/ler arquivos: " + mensagem);
+        super("Erro crítico ao acessar o banco de dados: " + mensagem);
     }
 }
