@@ -28,7 +28,19 @@ public class AdministradorSistemaTest {
         admin = new AdministradorSistema();
     }
 
-    private void limparBanco() {
+    /**
+     * Roda uma única vez, depois que TODOS os testes desta classe já terminaram.
+     * Sem isso, o que o último teste executado deixasse no banco ficaria lá,
+     * e a próxima vez que você rodasse o sistema manualmente (fora dos testes)
+     * continuaria contando os IDs a partir desse resto, em vez de começar do
+     * início da faixa de cada tipo.
+     */
+    @AfterAll
+    static void tearDown() {
+        limparBanco();
+    }
+
+    private static void limparBanco() {
         EntityManager em = JPAUtil.getEntityManager();
         try {
             em.getTransaction().begin();
@@ -71,19 +83,22 @@ public class AdministradorSistemaTest {
     }
  
     @Test
-    void deveLancarExcecaoAoCadastrarAmbienteComIdDuplicado() throws Exception {
-        admin.cadastrarAmbiente(new SalaMusculacao("A1", "Sala Musc 1"));
- 
-        assertThrows(AmbienteJaCadastradoException.class,
-                () -> admin.cadastrarAmbiente(new SalaMusculacao("A1", "Sala Musc 2")));
+    void deveLancarExcecaoAoEsgotarFaixaDeIdsDoTipo() throws Exception {
+        // Faixa de SalaMusculacao é 101-120 (20 vagas) - cadastra todas.
+        for (int i = 0; i < 20; i++) {
+            admin.cadastrarAmbiente(TipoAmbiente.MUSCULACAO, null);
+        }
+
+        // A 21ª deve estourar o limite da faixa.
+        assertThrows(LimiteAmbienteExcedidoException.class,
+                () -> admin.cadastrarAmbiente(TipoAmbiente.MUSCULACAO, null));
     }
 
     @Test
     void deveLancarExcecaoAoAgendarHorarioSobreposto() throws Exception {
         Aluno aluno = new Aluno("11111111111", "Teste", "a@a.com", "123", LocalDate.now());
         admin.cadastrarAluno(aluno);
-        Ambiente ambiente = new SalaMusculacao("A1", "Sala Musc 1");
-        admin.cadastrarAmbiente(ambiente);
+        Ambiente ambiente = admin.cadastrarAmbiente(TipoAmbiente.MUSCULACAO, "Sala Musc 1");
 
         // Primeira reserva: 08:00-09:00, deve ser aceita normalmente.
         Agendamento primeira = new Agendamento(aluno, ambiente,
@@ -106,8 +121,7 @@ public class AdministradorSistemaTest {
     void deveLancarExcecaoAoAdicionarServicoNuloAAgendamentoExistente() throws Exception {
         Aluno aluno = new Aluno("11111111111", "Teste", "a@a.com", "123", LocalDate.now());
         admin.cadastrarAluno(aluno);
-        Ambiente ambiente = new SalaMusculacao("A1", "Sala Musc 1");
-        admin.cadastrarAmbiente(ambiente);
+        Ambiente ambiente = admin.cadastrarAmbiente(TipoAmbiente.MUSCULACAO, "Sala Musc 1");
 
         Agendamento agendamento = new Agendamento(aluno, ambiente,
                 LocalDate.now().plusDays(1), LocalTime.of(8, 0), LocalTime.of(9, 0));
@@ -127,8 +141,7 @@ public class AdministradorSistemaTest {
         Aluno aluno = new Aluno("11111111111", "Teste", "a@a.com", "123", LocalDate.now());
         admin.cadastrarAluno(aluno);
         // SalaMusculacao tem valor fixo de R$100,00/hora.
-        Ambiente ambiente = new SalaMusculacao("A1", "Sala Musc 1");
-        admin.cadastrarAmbiente(ambiente);
+        Ambiente ambiente = admin.cadastrarAmbiente(TipoAmbiente.MUSCULACAO, "Sala Musc 1");
 
         // 1 hora de reserva (08:00-09:00) = R$100,00 de base.
         Agendamento agendamento = new Agendamento(aluno, ambiente,

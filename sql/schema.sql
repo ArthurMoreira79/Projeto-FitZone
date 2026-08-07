@@ -37,6 +37,7 @@ CREATE TABLE ambientes (
     tipo        VARCHAR(20)  NOT NULL,   -- discriminador: MUSCULACAO | YOGA | CROSSFIT | PISCINA
     nome        VARCHAR(100) NOT NULL,
     valor_hora  DOUBLE       NOT NULL,
+    observacoes VARCHAR(200) NULL,       -- texto livre e opcional digitado pelo usuário
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -77,3 +78,11 @@ CREATE TABLE servicos_adicionais (
         FOREIGN KEY (agendamento_id) REFERENCES agendamentos(id)
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- =====================================================================
+-- MIGRAÇÃO (rodar só se o banco já existia antes desta mudança)
+-- =====================================================================
+-- Se você criou as tabelas ANTES da coluna "observacoes" existir neste
+-- script, rode só esta linha (não precisa recriar nada):
+--
+-- ALTER TABLE ambientes ADD COLUMN observacoes VARCHAR(200) NULL;

@@ -17,10 +17,14 @@ public class SalaMusculacao extends Ambiente{
 
     private static final double VALOR_HORA_FIXO = 100.0;
 
-    protected SalaMusculacao() {}
+    protected SalaMusculacao() { } // exigido pelo JPA
 
-    public SalaMusculacao(String id, String nome){
-        super(id, nome, VALOR_HORA_FIXO);
+    /**
+     * @param id auto-gerado pelo AdministradorSistema (faixa 101-120)
+     * @param observacoes texto livre e opcional digitado pelo usuário
+     */
+    public SalaMusculacao(String id, String observacoes){
+        super(id, "Sala de Musculação " + id, VALOR_HORA_FIXO, observacoes);
     }
 
     @Override

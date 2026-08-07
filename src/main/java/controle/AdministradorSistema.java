@@ -68,11 +68,42 @@ public class AdministradorSistema {
      * Cadastra um novo ambiente no sistema.
      * verifica se o ID já existe antes de inserir e lança exceção se duplicado.
      */
-    public void cadastrarAmbiente(Ambiente a) throws AmbienteJaCadastradoException, FalhaPersistenciaException {
-        if(repoAmbientes.buscar(a.getId()) != null) {
+    /**
+     * Cadastra um novo ambiente do tipo informado, gerando automaticamente
+     * o próximo ID disponível dentro da faixa reservada a esse tipo (ver
+     * {@link TipoAmbiente}) e um nome padronizado ("Sala de Musculação 101").
+     *
+     * @param tipo tipo do ambiente a criar
+     * @param observacoes texto livre opcional (pode ser null/vazio)
+     * @return o ambiente já criado e persistido, para a camada de fronteira exibir
+     * @throws LimiteAmbientesExcedidoException se a faixa de IDs do tipo já estiver cheia
+     */
+    public Ambiente cadastrarAmbiente(TipoAmbiente tipo, String observacoes) throws LimiteAmbienteExcedidoException, AmbienteJaCadastradoException, FalhaPersistenciaException {
+        String maiorId = repoAmbientes.buscarMaiorIdPorTipo(tipo.getClasse());
+        int proximoNumero = (maiorId == null) ? tipo.getInicioFaixa() : Integer.parseInt(maiorId) + 1;
+
+        if (proximoNumero > tipo.getFimFaixa()) {
+            throw new LimiteAmbienteExcedidoException("Limite de ambientes do tipo " + tipo
+                    + " atingido (faixa " + tipo.getInicioFaixa() + "-" + tipo.getFimFaixa() + " esgotada).");
+        }
+
+        String id = String.valueOf(proximoNumero);
+
+        Ambiente ambiente = switch (tipo) {
+            case MUSCULACAO -> new SalaMusculacao(id, observacoes);
+            case YOGA -> new SalaYoga(id, observacoes);
+            case CROSSFIT -> new SalaCrossfit(id, observacoes);
+            case PISCINA -> new Piscina(id, observacoes);
+        };
+
+        // Checagem defensiva: na teoria nunca deveria disparar, já que o ID
+        // acima é sempre calculado como "livre", mas é barato garantir.
+        if (repoAmbientes.buscar(ambiente.getId()) != null) {
             throw new AmbienteJaCadastradoException("ID de ambiente já existe.");
         }
-        repoAmbientes.inserir(a);
+
+        repoAmbientes.inserir(ambiente);
+        return ambiente;
     }
 
     /**

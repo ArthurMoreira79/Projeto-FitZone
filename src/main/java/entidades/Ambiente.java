@@ -37,12 +37,16 @@ public abstract class Ambiente implements Serializable{
     @Column(name = "valor_hora", nullable = false)
     private double valorHora;
 
+    @Column(name = "observacoes", length = 200)
+    private String observacoes;
+
     protected Ambiente() {}
 
-    public Ambiente(String id, String nome, double valorHora){
+    public Ambiente(String id, String nome, double valorHora, String observacoes){
         this.id = id;
         this.nome = nome;
         this.valorHora = valorHora;
+        this.observacoes = observacoes;
     }
 
     /* Getters e Setters */
@@ -55,6 +59,10 @@ public abstract class Ambiente implements Serializable{
  
     public double getValorHora()                 { return valorHora; }
     public void setValorHora(double valorHora)   { this.valorHora = valorHora; }
+
+    /** Descrição livre e opcional digitada pelo usuário no cadastro (até 200 caracteres). */
+    public String getObservacoes()               { return observacoes; }
+    public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
 
     public abstract String getTipo();
     public abstract String getDescricao();

@@ -61,6 +61,20 @@ public class LeitorEntrada {
         }
     }
 
+    /**
+     * Lê um texto opcional (pode ficar em branco - retorna null nesse caso),
+     * mas respeita um tamanho máximo, insistindo até caber no limite.
+     */
+    public String lerTextoOpcional(String prompt, int tamanhoMaximo) {
+        while (true) {
+            System.out.print(prompt);
+            String texto = leitor.nextLine().trim();
+            if (texto.isEmpty()) return null;
+            if (texto.length() <= tamanhoMaximo) return texto;
+            System.out.println("Texto muito longo (" + texto.length() + " caracteres). Máximo: " + tamanhoMaximo + ".");
+        }
+    }
+
     /** Lê um inteiro estritamente positivo (> 0), insistindo até ser válido. */
     public int lerInteiroPositivo(String prompt) {
         while (true) {

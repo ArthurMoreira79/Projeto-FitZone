@@ -17,10 +17,14 @@ public class SalaYoga extends Ambiente{
 
     private static final double VALOR_HORA_FIXO = 70.0;
 
-    protected SalaYoga() {}
+    protected SalaYoga() { } // exigido pelo JPA
 
-    public SalaYoga(String id, String nome){
-        super(id, nome, VALOR_HORA_FIXO);
+    /**
+     * @param id auto-gerado pelo AdministradorSistema (faixa 201-220)
+     * @param observacoes texto livre e opcional digitado pelo usuário
+     */
+    public SalaYoga(String id, String observacoes){
+        super(id, "Sala de Yoga " + id, VALOR_HORA_FIXO, observacoes);
     }
 
     @Override

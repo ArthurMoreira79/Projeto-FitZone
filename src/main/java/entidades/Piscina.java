@@ -17,10 +17,14 @@ public class Piscina extends Ambiente{
 
     private static final double VALOR_HORA_FIXO = 80.0;
 
-    protected Piscina() {}
+    protected Piscina() { } // exigido pelo JPA
 
-    public Piscina(String id, String nome){
-        super(id, nome, VALOR_HORA_FIXO);
+    /**
+     * @param id auto-gerado pelo AdministradorSistema (faixa 401-420)
+     * @param observacoes texto livre e opcional digitado pelo usuário
+     */
+    public Piscina(String id, String observacoes){
+        super(id, "Piscina " + id, VALOR_HORA_FIXO, observacoes);
     }
 
     @Override

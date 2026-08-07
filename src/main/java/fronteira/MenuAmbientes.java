@@ -40,6 +40,8 @@ public class MenuAmbientes {
                 System.out.println("Erro ao salvar dados: " + e.getMessage());
             } catch (AmbienteJaCadastradoException e) {
                 System.out.println("Erro: " + e.getMessage());
+            } catch (LimiteAmbienteExcedidoException e) {
+                System.out.println("Erro: " + e.getMessage());
             } catch (Exception e) {
                 System.out.println("Erro inesperado: " + e.getMessage());
             }
@@ -47,30 +49,31 @@ public class MenuAmbientes {
     }
 
     /**
-     * Solicita ao usuário o tipo e o ID do espaço a ser cadastrado.
-     * Instancia a subclasse correta de Ambiente via switch e delega o cadastro ao AdministradorSistema.
+     * Solicita ao usuário apenas o tipo do ambiente (e uma observação opcional).
+     * O ID e o nome são gerados automaticamente pelo AdministradorSistema,
+     * dentro da faixa reservada ao tipo escolhido (ver TipoAmbiente).
      */
-    private void cadastrar() throws FalhaPersistenciaException, AmbienteJaCadastradoException {
+    private void cadastrar() throws FalhaPersistenciaException, AmbienteJaCadastradoException, LimiteAmbienteExcedidoException {
         ConsoleUtil.subtitulo("CADASTRO DE AMBIENTE");
         System.out.println("Tipos disponíveis:");
         System.out.println("1. Sala de Musculação");
         System.out.println("2. Sala de Yoga");
         System.out.println("3. Sala de Crossfit");
         System.out.println("4. Piscina");
-        int tipo = leitor.lerInteiro("Escolha o tipo: ");
-        String id = leitor.lerTextoObrigatorio("ID do ambiente: ");
-        String nome = leitor.lerTextoObrigatorio("Nome do ambiente: ");
+        int opcaoTipo = leitor.lerInteiro("Escolha o tipo: ");
 
-        Ambiente ambiente = switch (tipo) {
-            case 1 -> new SalaMusculacao(id, nome);
-            case 2 -> new SalaYoga(id, nome);
-            case 3 -> new SalaCrossfit(id, nome);
-            case 4 -> new Piscina(id, nome);
+        TipoAmbiente tipo = switch (opcaoTipo) {
+            case 1 -> TipoAmbiente.MUSCULACAO;
+            case 2 -> TipoAmbiente.YOGA;
+            case 3 -> TipoAmbiente.CROSSFIT;
+            case 4 -> TipoAmbiente.PISCINA;
             default -> throw new IllegalArgumentException("Tipo de ambiente inválido.");
         };
 
-        admin.cadastrarAmbiente(ambiente);
-        System.out.println("\nAmbiente cadastrado com sucesso!");
+        String observacoes = leitor.lerTextoOpcional("Observações (opcional, até 200 caracteres): ", 200);
+
+        Ambiente ambiente = admin.cadastrarAmbiente(tipo, observacoes);
+        System.out.println("\n" + ambiente.getNome() + " criado com sucesso!");
         ConsoleUtil.respiro();
     }
 
@@ -85,11 +88,14 @@ public class MenuAmbientes {
             System.out.println("Nenhum ambiente cadastrado.");
         } else {
             System.out.println();
-            System.out.printf("%-20s %-8s %-22s %-10s%n", "TIPO", "ID", "NOME", "VALOR/H");
+            System.out.printf("%-20s %-8s %-22s %-10s %-30s%n", "TIPO", "ID", "NOME", "VALOR/H", "OBSERVAÇÕES");
             ConsoleUtil.linha();
             for (Ambiente a : ambientes) {
-                System.out.printf("%-20s %-8s %-22s %-10s%n",
-                        a.getTipo(), a.getId(), a.getNome(), String.format("R$ %.2f", a.getValorHora()));
+                String obs = a.getObservacoes();
+                if (obs == null) obs = "";
+                if (obs.length() > 27) obs = obs.substring(0, 27) + "...";
+                System.out.printf("%-20s %-8s %-22s %-10s %-30s%n",
+                        a.getTipo(), a.getId(), a.getNome(), String.format("R$ %.2f", a.getValorHora()), obs);
             }
         }
         ConsoleUtil.respiro();
