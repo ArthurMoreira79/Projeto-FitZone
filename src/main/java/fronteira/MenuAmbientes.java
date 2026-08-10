@@ -73,9 +73,9 @@ public class MenuAmbientes {
         String observacoes = leitor.lerTextoOpcional("Observações (opcional, até 200 caracteres): ", 200);
 
         Ambiente ambiente = admin.cadastrarAmbiente(tipo, observacoes);
-        System.out.println();
         ConsoleUtil.sucesso(ambiente.getNome() + " criado com sucesso!");
         ConsoleUtil.respiro();
+        leitor.aguardarContinuar();
     }
 
     /**
@@ -89,16 +89,17 @@ public class MenuAmbientes {
             System.out.println("Nenhum ambiente cadastrado.");
         } else {
             System.out.println();
-            System.out.printf("%-20s %-8s %-22s %-10s %-30s%n", "TIPO", "ID", "NOME", "VALOR/H", "OBSERVAÇÕES");
+            System.out.printf("%-20s %-8s %-26s %-10s %-30s%n", "TIPO", "ID", "NOME", "VALOR/H", "OBSERVAÇÕES");
             ConsoleUtil.linha();
             for (Ambiente a : ambientes) {
                 String obs = a.getObservacoes();
                 if (obs == null) obs = "";
                 if (obs.length() > 27) obs = obs.substring(0, 27) + "...";
-                System.out.printf("%-20s %-8s %-22s %-10s %-30s%n",
+                System.out.printf("%-20s %-8s %-26s %-10s %-30s%n",
                         a.getTipo(), a.getId(), a.getNome(), String.format("R$ %.2f", a.getValorHora()), obs);
             }
         }
         ConsoleUtil.respiro();
+        leitor.aguardarContinuar();
     }
 }

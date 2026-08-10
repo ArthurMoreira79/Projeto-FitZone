@@ -128,4 +128,9 @@ public class LeitorEntrada {
             System.out.println("Resposta inválida. Digite S para sim ou N para não.");
         }
     }
+
+    public void aguardarContinuar() {
+        System.out.print("Pressione ENTER para continuar...");
+        leitor.nextLine();
+    }
 }

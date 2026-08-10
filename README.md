@@ -6,7 +6,7 @@ Este README documenta o estado atual do projeto e um roadmap de evolução gradu
 
 ---
 
-## 1. Estado atual (Fase 2 concluída — persistência com MySQL/JPA)
+## 1. Estado atual (Fase 3 concluída — melhorias de interface)
 
 O que já está implementado e funcionando:
 
@@ -15,15 +15,16 @@ O que já está implementado e funcionando:
 - **Exceções customizadas** com mensagens contextuais (`AlunoJaCadastradoException`, `AmbienteIndisponivelException`, `FalhaPersistenciaException`, etc.), tratadas tanto no `AdministradorSistema` quanto nos menus.
 - **Persistência com JPA/Hibernate + MySQL** (Fase 2): os três repositórios (`RepositorioAlunos`, `RepositorioAmbientes`, `RepositorioAgendamentos`) usam `EntityManager` para `SELECT`/`INSERT`/`UPDATE`/`DELETE` reais no banco `fitzone`, mantendo a mesma assinatura de métodos da Fase 1 (Repository Pattern na prática — o `AdministradorSistema` quase não mudou). `Ambiente` e `ServicoAdicional` usam herança `SINGLE_TABLE` com coluna discriminadora. O ID de `Agendamento` deixou de ser um contador manual em memória e passou a ser `AUTO_INCREMENT` do MySQL. DDL manual em `sql/schema.sql` (ver seção 3).
 - **Camadas separadas**: `entidades`, `controle`, `fronteira`, `excecoes` — cada uma com responsabilidade única.
-- **Interface textual completa**: cadastro/busca/listagem de alunos, cadastro/listagem de ambientes, criação/cancelamento de agendamentos, adição de serviço a reserva existente, 4 relatórios — tudo com tabelas alinhadas e navegação em loop.
+- **Interface textual refinada** (Fase 3): cores ANSI (`ConsoleUtil`) para erro/sucesso/aviso e para títulos/subtítulos em negrito + branco destacado; pausa com "Pressione ENTER para continuar" antes de retornar aos menus; validação de CPF duplicado antecipada e em loop no cadastro de aluno; espaçamento padronizado de uma linha entre mensagens comuns e mensagens de erro/sucesso/aviso; tabelas com colunas realinhadas (Ambientes, Agendamentos, Relatório por Aluno) para nomes mais longos; blocos do relatório de faturamento no padrão `===== FATURAMENTO POR DIA/AMBIENTE/ALUNO =====`, também em negrito + branco destacado.
 
 ### Pontas soltas a fechar antes de evoluir
 
-Pequenos ajustes que valem a pena resolver **antes** de começar a mexer em banco de dados ou interface nova, pra não carregar dívida técnica adiante:
+Pequenos ajustes que valem a pena resolver **antes** de começar a mexer em arquitetura ou interface nova, pra não carregar dívida técnica adiante:
 
 - [✔ ] Decidir sobre o atributo `disponivel` do `Ambiente`: usar de verdade (ex. marcar ambiente em manutenção) ou remover de vez — hoje ele não existe mais na classe, então é só confirmar que isso não aparece como pendência no diagrama entregue.
 - [✔ ] Criar uma exceção própria para "ID de ambiente já cadastrado" em vez de reaproveitar `AmbienteIndisponivelException` (que semanticamente é sobre disponibilidade de horário, não duplicidade de cadastro).
 - [✔ ] Documentar um roteiro de testes manuais — feito em `Roteiro.md`, com checklist completo (todas as exceções, todos os relatórios) e atualizado na Fase 2 pra refletir a persistência em MySQL.
+- [ ] Opcional, ainda em aberto: menus mais ricos com **Lanterna** ou **JLine** (setas, seleção interativa) — ficou de fora do escopo da Fase 3 por ser opcional (ver Fase 3 no roadmap); avaliar se vale a pena antes da Fase 4 ou se compensa pular direto pro Spring Boot.
 
 ---
 
@@ -57,11 +58,15 @@ Trocar a serialização em `.dat` por um banco de verdade:
 
 - **Decisão consciente, não pendência**: os testes do JUnit viraram testes de integração contra o MySQL real (schema `fitzone`, mesmo usado em desenvolvimento) — rodam mais lento e dependem do banco estar no ar, e `mvn test` limpa as tabelas a cada execução. Avaliamos usar um schema `fitzone_test` separado (ou H2 em memória) só pro escopo de teste, mas decidimos que não vale a complexidade extra por enquanto. Fica registrado como possível evolução futura se o projeto crescer.
 
-### Fase 3 — Melhorias de interface (ainda em texto)
+### Fase 3 — Melhorias de interface (ainda em texto) ✔ (concluída)
 
-- Cores ANSI no terminal para destacar mensagens de erro (vermelho) e sucesso (verde) — simples de implementar e melhora bastante a leitura.
-- Validação de entrada mais amigável, com nova tentativa em vez de cancelar a operação inteira ao digitar algo errado.
-- Se quiser ir além do texto puro sem sair do terminal, dá pra explorar bibliotecas como **Lanterna** ou **JLine** para menus mais ricos (setas, seleção, cores nativas).
+- ✔ Cores ANSI no terminal (`ConsoleUtil`): vermelho para erro, verde para sucesso, amarelo para aviso; negrito + branco destacado para títulos, subtítulos e blocos de relatório.
+- ✔ Validação de entrada com nova tentativa em vez de cancelar a operação inteira ao digitar algo errado — já valia para formato (CPF, data, hora, inteiro) desde a Fase 1/2; na Fase 3 passou a valer também para CPF duplicado no cadastro de aluno, verificado assim que digitado, em loop, em vez de só no fim do cadastro.
+- ✔ Pausa "Pressione ENTER para continuar" ao fim de cada operação, antes de voltar ao menu — dá tempo de ler a mensagem de conclusão sem apressar o fluxo.
+- ✔ Espaçamento de uma linha padronizado entre qualquer mensagem comum do sistema e mensagens de erro/sucesso/aviso (resolvido direto nos métodos `erro()`/`sucesso()`/`aviso()` do `ConsoleUtil`, em vez de espalhar `println()` extras pelo código).
+- ✔ Tabelas de listagem/busca realinhadas (Ambientes, Agendamentos, Relatório por Aluno) — colunas mais largas para acomodar nomes gerados automaticamente (ex. "Sala de Musculação 101") sem colar na coluna seguinte.
+- ✔ Blocos internos do relatório de faturamento (por dia/ambiente/aluno) padronizados no mesmo estilo `===== TEXTO =====` usado em outros relatórios, com o mesmo destaque em negrito + branco.
+- Não feito, opcional: bibliotecas como **Lanterna** ou **JLine** pra menus mais ricos (setas, seleção, cores nativas) — o README já tratava isso como "se quiser ir além do texto puro", fora do escopo obrigatório da fase. Fica como possível item futuro, não como pendência.
 
 ### Fase 4 — Arquitetura em camadas "de produção" (rumo a Spring Boot)
 
@@ -87,7 +92,7 @@ Duas direções possíveis a partir da Fase 4:
 
 ---
 
-## 3. Como rodar hoje (Fase 2 — Maven + MySQL)
+## 3. Como rodar hoje (Maven + MySQL)
 
 Pré-requisitos: JDK 21, Maven e um MySQL rodando localmente com o banco `fitzone` já criado.
 

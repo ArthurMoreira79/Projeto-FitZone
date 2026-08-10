@@ -53,15 +53,24 @@ public class MenuAlunos {
      */
     private void cadastrar() throws AlunoJaCadastradoException, FalhaPersistenciaException {
         ConsoleUtil.subtitulo("CADASTRO DE ALUNO");
-        String cpf = leitor.lerCpf("CPF (11 dígitos): ");
+        String cpf;
+        while (true) {
+            cpf = leitor.lerCpf("CPF (11 dígitos): ");
+            try {
+                admin.buscarAluno(cpf);
+                ConsoleUtil.erro("Já existe um aluno cadastrado com o CPF '" + cpf + "'.");
+            } catch (AlunoNaoEncontradoException e) {
+                break; // CPF livre, pode seguir
+            }
+        }
         String nome = leitor.lerTextoObrigatorio("Nome: ");
         String email = leitor.lerTextoObrigatorio("Email: ");
         String telefone = leitor.lerTextoObrigatorio("Telefone: ");
 
         admin.cadastrarAluno(new Aluno(cpf, nome, email, telefone, LocalDate.now()));
-        System.out.println();
         ConsoleUtil.sucesso("Aluno cadastrado com sucesso!");
         ConsoleUtil.respiro();
+        leitor.aguardarContinuar();
     }
 
     /**
@@ -76,6 +85,7 @@ public class MenuAlunos {
         imprimirCabecalho();
         imprimirLinha(aluno);
         ConsoleUtil.respiro();
+        leitor.aguardarContinuar();
     }
 
     /**
@@ -93,6 +103,7 @@ public class MenuAlunos {
             alunos.forEach(this::imprimirLinha);
         }
         ConsoleUtil.respiro();
+        leitor.aguardarContinuar();
     }
 
     private void imprimirCabecalho() {

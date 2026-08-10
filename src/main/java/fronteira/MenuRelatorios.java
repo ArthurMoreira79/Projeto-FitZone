@@ -55,13 +55,15 @@ public class MenuRelatorios {
             System.out.println("\nNenhum agendamento encontrado para este aluno.");
         } else {
             System.out.println("\nAgendamentos encontrados: " + agendamentos.size());
-            System.out.printf("%-4s %-18s %-12s %-13s %-10s%n", "ID", "AMBIENTE", "DATA", "HORÁRIO", "TOTAL");
+            System.out.println();
+            System.out.printf("%-4s %-22s %-12s %-13s %-10s%n", "ID", "AMBIENTE", "DATA", "HORÁRIO", "TOTAL");
             ConsoleUtil.linha();
-            agendamentos.forEach(a -> System.out.printf("%-4d %-18s %-12s %-13s %-10s%n",
+            agendamentos.forEach(a -> System.out.printf("%-4d %-22s %-12s %-13s %-10s%n",
                     a.getId(), a.getAmbiente().getNome(), a.getDataAgendamento(),
                     a.getHoraInicio() + "-" + a.getHoraFim(), String.format("R$ %.2f", a.getValorTotal())));
         }
         ConsoleUtil.respiro();
+        leitor.aguardarContinuar();
     }
 
     @SuppressWarnings("unchecked")
@@ -85,6 +87,7 @@ public class MenuRelatorios {
             });
         }
         ConsoleUtil.respiro();
+        leitor.aguardarContinuar();
     }
 
     @SuppressWarnings("unchecked")
@@ -92,19 +95,19 @@ public class MenuRelatorios {
         ConsoleUtil.subtitulo("RELATÓRIO: FATURAMENTO");
         Map<String, Object> relatorio = admin.relatorioFaturamento();
 
-        System.out.println("\nPor dia:");
+        ConsoleUtil.blocoRelatorio("Faturamento por Dia");
         System.out.printf("%-15s %-10s%n", "DATA", "VALOR");
         ConsoleUtil.linha();
         Map<String, Double> porDia = (Map<String, Double>) relatorio.get("porDia");
         porDia.forEach((data, valor) -> System.out.printf("%-15s %-10s%n", data, String.format("R$ %.2f", valor)));
 
-        System.out.println("\nPor ambiente:");
+        ConsoleUtil.blocoRelatorio("Faturamento por Ambiente");
         System.out.printf("%-22s %-10s%n", "AMBIENTE", "VALOR");
         ConsoleUtil.linha();
         Map<String, Double> porAmbiente = (Map<String, Double>) relatorio.get("porAmbiente");
         porAmbiente.forEach((ambiente, valor) -> System.out.printf("%-22s %-10s%n", ambiente, String.format("R$ %.2f", valor)));
 
-        System.out.println("\nPor aluno:");
+        ConsoleUtil.blocoRelatorio("Faturamento por Aluno");
         System.out.printf("%-22s %-10s%n", "ALUNO", "VALOR");
         ConsoleUtil.linha();
         Map<String, Double> porAluno = (Map<String, Double>) relatorio.get("porAluno");
@@ -115,6 +118,7 @@ public class MenuRelatorios {
         ConsoleUtil.linha();
         System.out.printf("TOTAL GERAL: R$ %.2f%n", total);
         ConsoleUtil.respiro();
+        leitor.aguardarContinuar();
     }
 
     @SuppressWarnings("unchecked")
@@ -137,5 +141,6 @@ public class MenuRelatorios {
             });
         }
         ConsoleUtil.respiro();
+        leitor.aguardarContinuar();
     }
 }

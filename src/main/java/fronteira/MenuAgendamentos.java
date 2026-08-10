@@ -83,11 +83,11 @@ public class MenuAgendamentos {
 
         admin.realizarAgendamento(agendamento);
 
-        System.out.println();
         ConsoleUtil.sucesso("Agendamento realizado com sucesso!");
         ConsoleUtil.linha();
         System.out.println(agendamento);
         ConsoleUtil.respiro();
+        leitor.aguardarContinuar();
     }
 
     /**
@@ -153,9 +153,9 @@ public class MenuAgendamentos {
         };
 
         admin.adicionarServicoAoAgendamento(id, servico);
-        System.out.println();
         ConsoleUtil.sucesso("Serviço adicionado com sucesso à reserva #" + id + ".");
         ConsoleUtil.respiro();
+        leitor.aguardarContinuar();
     }
 
     /**
@@ -170,19 +170,20 @@ public class MenuAgendamentos {
         Agendamento agendamento = admin.buscarAgendamento(id);
         System.out.println();
         System.out.println(agendamento);
+        System.out.println();
 
         boolean confirmou = leitor.lerConfirmacao("Tem certeza que deseja cancelar essa reserva? (S/N): ");
         if (!confirmou) {
-            System.out.println();
             ConsoleUtil.aviso("Cancelamento abortado. A reserva foi mantida.");
             ConsoleUtil.respiro();
+            leitor.aguardarContinuar();
             return;
         }
 
         admin.cancelarAgendamento(id);
-        System.out.println();
         ConsoleUtil.sucesso("Agendamento #" + id + " cancelado com sucesso.");
         ConsoleUtil.respiro();
+        leitor.aguardarContinuar();
     }
 
     /**
@@ -196,14 +197,15 @@ public class MenuAgendamentos {
             System.out.println("Nenhum agendamento cadastrado.");
         } else {
             System.out.println();
-            System.out.printf("%-4s %-18s %-18s %-12s %-13s %-10s%n",
+            System.out.printf("%-4s %-22s %-22s %-12s %-13s %-10s%n",
                     "ID", "ALUNO", "AMBIENTE", "DATA", "HORÁRIO", "TOTAL");
             ConsoleUtil.linha();
-            lista.forEach(a -> System.out.printf("%-4d %-18s %-18s %-12s %-13s %-10s%n",
+            lista.forEach(a -> System.out.printf("%-4d %-22s %-22s %-12s %-13s %-10s%n",
                     a.getId(), a.getAluno().getNome(), a.getAmbiente().getNome(),
                     a.getDataAgendamento(), a.getHoraInicio() + "-" + a.getHoraFim(),
                     String.format("R$ %.2f", a.getValorTotal())));
         }
         ConsoleUtil.respiro();
+        leitor.aguardarContinuar();
     }
 }

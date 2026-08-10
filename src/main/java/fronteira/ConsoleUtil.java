@@ -14,6 +14,8 @@ public class ConsoleUtil {
     // antigo pode não suportar - nesse caso os códigos aparecem como texto
     // estranho em vez de cor, mas não quebram a execução do programa.
     private static final String RESET   = "\u001B[0m";
+    private static final String NEGRITO = "\u001B[1m";
+    private static final String BRANCO_DESTAQUE = "\u001B[97m"; // branco brilhante
     private static final String VERMELHO = "\u001B[31m";
     private static final String VERDE    = "\u001B[32m";
     private static final String AMARELO  = "\u001B[33m";
@@ -21,19 +23,30 @@ public class ConsoleUtil {
     private ConsoleUtil() {}
 
     /**
-     * Titulo Principal de uma tela de menu
+     * Titulo Principal de uma tela de menu - em negrito + branco destacado.
      */
     public static void titulo(String texto) {
         System.out.println("\n" + LINHA_DUPLA);
-        System.out.println(centralizar(texto));
+        System.out.println(NEGRITO + BRANCO_DESTAQUE + centralizar(texto) + RESET);
         System.out.println(LINHA_DUPLA);
     }
 
     /**
-     * Subtitulo de uma operação dentro do menu
+     * Subtitulo de uma operação dentro do menu (ex.: "CADASTRO DE ALUNO",
+     * "RELATÓRIO: FATURAMENTO") - também em negrito + branco destacado, um
+     * nível abaixo do título principal.
      */
     public static void subtitulo(String texto) {
-        System.out.println("\n-- " + texto + "--");
+        System.out.println("\n" + NEGRITO + BRANCO_DESTAQUE + "-- " + texto + "--" + RESET);
+    }
+
+    /**
+     * Sub-cabeçalho de um bloco dentro de um relatório maior (ex.: separar
+     * "por dia", "por ambiente" e "por aluno" dentro do relatório de
+     * faturamento). Um nível abaixo do subtitulo(), mesmo destaque visual.
+     */
+    public static void blocoRelatorio(String texto) {
+        System.out.println("\n" + NEGRITO + BRANCO_DESTAQUE + "===== " + texto.toUpperCase() + " =====" + RESET);
     }
 
     /**
@@ -52,17 +65,17 @@ public class ConsoleUtil {
 
     /** Mensagem de erro, em vermelho. Use para exceções e entradas inválidas. */
     public static void erro(String texto) {
-        System.out.println(VERMELHO + "✘ " + texto + RESET);
+        System.out.println("\n" + VERMELHO + "✘ " + texto + RESET);
     }
 
     /** Mensagem de sucesso, em verde. Use para confirmar que uma operação deu certo. */
     public static void sucesso(String texto) {
-        System.out.println(VERDE + "✔ " + texto + RESET);
+        System.out.println("\n" + VERDE + "✔ " + texto + RESET);
     }
 
     /** Mensagem de aviso, em amarelo. Use para avisos que não são erro, mas merecem atenção. */
     public static void aviso(String texto) {
-        System.out.println(AMARELO + "⚠ " + texto + RESET);
+        System.out.println("\n" + AMARELO + "⚠ " + texto + RESET);
     }
 
     private static String centralizar(String texto) {
