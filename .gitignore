@@ -25,6 +25,10 @@ target/
 .vscode/
 *.code-workspace
 
+# Claude Code (estado local da ferramenta de IA, não faz parte do projeto)
+.claude/
+CLAUDE.md
+
 # IntelliJ IDEA
 .idea/
 *.iml
@@ -81,6 +85,3 @@ $RECYCLE.BIN/
 *.swp
 *.log
 logs/
-
-# Arquivo persistence.xml com credenciais reais
-src/main/resources/META-INF/persistence.xml
