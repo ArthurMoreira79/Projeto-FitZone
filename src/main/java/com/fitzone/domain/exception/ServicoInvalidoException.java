@@ -1,9 +1,7 @@
 package com.fitzone.domain.exception;
 
-public class ServicoInvalidoException extends Exception{
+public class ServicoInvalidoException extends RuntimeException{
     
-    private static final long serialVersionUID = 1L;
-
     /**
      * @param mensagem
      */

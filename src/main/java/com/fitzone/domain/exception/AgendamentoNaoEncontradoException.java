@@ -1,9 +1,7 @@
 package com.fitzone.domain.exception;
 
-public class AgendamentoNaoEncontradoException extends Exception{
+public class AgendamentoNaoEncontradoException extends RuntimeException{
     
-    private static final long serialVersionUID = 1L;
-
     /**
      * @param mensagem
      */

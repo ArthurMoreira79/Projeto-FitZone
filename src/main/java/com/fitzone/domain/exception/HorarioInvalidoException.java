@@ -1,12 +1,13 @@
 package com.fitzone.domain.exception;
 
-public class AmbienteIndisponivelException extends RuntimeException{
+public class HorarioInvalidoException extends RuntimeException{
     
+
     /**
      * @param mensagem
      */
     
-    public AmbienteIndisponivelException(String mensagem){
+    public HorarioInvalidoException(String mensagem) {
         super("Erro ao agendar ambiente: " + mensagem);
     }
 }
