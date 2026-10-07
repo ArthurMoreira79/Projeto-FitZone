@@ -1,9 +1,7 @@
 package com.fitzone.domain.exception;
 
-public class LimiteAmbienteExcedidoException extends Exception{
+public class LimiteAmbienteExcedidoException extends RuntimeException{
     
-    private static final long serialVersionUID = 1L;
-
     /**
      * @param mensagem
      */

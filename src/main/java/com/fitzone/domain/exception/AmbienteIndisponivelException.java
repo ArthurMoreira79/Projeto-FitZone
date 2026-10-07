@@ -1,9 +1,7 @@
 package com.fitzone.domain.exception;
 
-public class AmbienteIndisponivelException extends Exception{
+public class AmbienteIndisponivelException extends RuntimeException{
     
-    private static final long serialVersionUID = 1L;
-
     /**
      * @param mensagem
      */

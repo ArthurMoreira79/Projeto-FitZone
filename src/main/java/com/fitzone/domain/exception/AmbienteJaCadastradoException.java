@@ -1,9 +1,7 @@
 package com.fitzone.domain.exception;
 
-public class AmbienteJaCadastradoException extends Exception{
+public class AmbienteJaCadastradoException extends RuntimeException{
     
-    private static final long serialVersionUID = 1L;
-
     /**
      * @param mensagem
      */

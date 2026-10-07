@@ -1,9 +1,7 @@
 package com.fitzone.domain.exception;
 
-public class AlunoNaoEncontradoException extends Exception{
+public class AlunoNaoEncontradoException extends RuntimeException{
     
-    private static final long serialVersionUID = 1L;
-
     /**
      * @param mensagem
      */
