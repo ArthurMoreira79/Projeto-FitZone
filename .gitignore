@@ -82,5 +82,4 @@ $RECYCLE.BIN/
 *.log
 logs/
 
-# Arquivo persistence.xml com credenciais reais
-src/main/resources/META-INF/persistence.xml
+CLAUDE.md
