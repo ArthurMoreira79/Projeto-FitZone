@@ -1,0 +1,7 @@
+$kind: http-request
+url: "{{baseUrl}}/agendamentos/1/servicos"
+method: POST
+body:
+  type: json
+  content: '{"tipo":"PERSONAL_TRAINER"}'
+order: 2000

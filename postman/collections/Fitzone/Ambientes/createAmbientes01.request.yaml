@@ -1,0 +1,7 @@
+$kind: http-request
+url: "{{baseUrl}}/ambientes"
+method: POST
+body:
+  type: json
+  content: '{"tipo":"MUSCULACAO","observacoes":"Térreo"}'
+order: 1000

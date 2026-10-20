@@ -1,0 +1,7 @@
+$kind: http-request
+url: "{{baseUrl}}/alunos"
+method: POST
+body:
+  type: json
+  content: '{"cpf":"98765432101","nome":"Bruno Lima","email":"ana@email.com","telefone":"11912345678"}'
+order: 4000

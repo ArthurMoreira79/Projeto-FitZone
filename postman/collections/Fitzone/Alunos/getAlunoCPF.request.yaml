@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{baseUrl}}/alunos/busca?cpf=12345678901"
+method: GET
+queryParams:
+  cpf: "12345678901"
+order: 4000

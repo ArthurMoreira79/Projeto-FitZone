@@ -1,0 +1,8 @@
+$kind: http-request
+name: CPFJaCadastrado
+url: "{{baseUrl}}/alunos"
+method: POST
+body:
+  type: json
+  content: '{"cpf":"12345678901","nome":"Ana Souza","email":"ana@email.com","telefone":"11987654321"}'
+order: 3000

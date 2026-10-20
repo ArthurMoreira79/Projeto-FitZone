@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{baseUrl}}/relatorios/faturamento"
+method: GET
+order: 3000

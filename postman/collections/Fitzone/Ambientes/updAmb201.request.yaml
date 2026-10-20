@@ -1,0 +1,7 @@
+$kind: http-request
+url: "{{baseUrl}}/ambientes/201"
+method: PUT
+body:
+  type: json
+  content: '{"observacoes":"Sala climatizada"}'
+order: 3000

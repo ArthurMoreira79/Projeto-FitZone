@@ -1,0 +1,7 @@
+$kind: http-request
+url: "{{baseUrl}}/agendamentos"
+method: POST
+body:
+  type: json
+  content: '{"alunoId":2,"ambienteId":201,"data":"2020-01-01","horaInicio":"08:00","horaFim":"09:00"}'
+order: 11000
