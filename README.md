@@ -2,29 +2,30 @@
 
 Projeto desenvolvido a princípio para revisar conceitos da Programação Orientada a Objetos, simulando a gestão de uma academia/estúdio fitness: cadastro de alunos, ambientes reserváveis (sala de musculação, yoga, crossfit, piscina), agendamentos com serviços adicionais (avaliação física, nutricionista, personal trainer, locker) e relatórios de ocupação e faturamento.
 
-Este README documenta o estado atual do projeto e um roadmap de evolução gradual, já pensando além da revisão.
+O projeto evoluiu em fases — de um sistema de console em Java puro até uma **API REST com Spring Boot, MySQL e Flyway**. Este README documenta o estado atual e o histórico de cada fase.
 
 ---
 
-## 1. Estado atual (Fase 3 concluída — melhorias de interface)
+## 1. Estado atual (Fase 4 concluída — API REST com Spring Boot)
 
-O que já está implementado e funcionando:
+- **API REST** com Spring Boot 4 (Java 21): CRUD de alunos e ambientes, agendamentos com serviços adicionais e 4 relatórios, em `/api/*`.
+- **Arquitetura em camadas**: `domain` (modelo, repositórios, services, exceções) separado de `api` (controllers, DTOs, tratamento de erros) — as regras de negócio não sabem que existe HTTP.
+- **Banco versionado com Flyway**: o schema é criado e evoluído por migrations (`src/main/resources/db/migration`); o Hibernate só valida (`ddl-auto=validate`).
+- **Regras de negócio também no banco**: constraints `CHECK` (horário, valores, faixa de ids por tipo, tipos válidos, quantidade de lockers), `UNIQUE` (CPF, e-mail) e FKs com `ON DELETE RESTRICT` — última linha de defesa caso algum bug passe pelos services.
+- **Modelagem OO preservada**: `Ambiente` e `ServicoAdicional` são classes abstratas com herança `SINGLE_TABLE` e polimorfismo real (cada subtipo calcula sua descrição e seu valor).
+- **DTOs (records) na fronteira da API** com Bean Validation — as entidades JPA nunca são expostas no JSON.
+- **Erros padronizados**: um `@RestControllerAdvice` converte cada exceção no status certo (400, 404, 405, 409, 415, 500), sempre no mesmo formato JSON, com a lista de campos inválidos quando é erro de validação.
+- **Testes**: 18 testes de integração (JUnit 5 + `@SpringBootTest`) contra um banco MySQL próprio de testes (`fitzone_test`), mais uma coleção do Postman com os cenários de teste manual (`postman/` e [Roteiro.md](Roteiro.md)).
+- **Credenciais fora do código**: lidas de um arquivo `.env` que não é versionado.
 
-- **Modelagem OO completa**: classe abstrata `Ambiente` com 4 subclasses; `ServicoAdicional` (era interface na Fase 1, virou classe abstrata na Fase 2 para poder ser mapeada como entidade JPA) com 4 implementações — o polimorfismo continua real, cada subtipo sobrescreve `getDescricao()`/`getValorTotal()`.
-- **Encapsulamento**: atributos privados, getters/setters, regras de cálculo dentro das próprias entidades (`Agendamento.calculaValorTotal()`).
-- **Exceções customizadas** com mensagens contextuais (`AlunoJaCadastradoException`, `AmbienteIndisponivelException`, `FalhaPersistenciaException`, etc.), tratadas tanto no `AdministradorSistema` quanto nos menus.
-- **Persistência com JPA/Hibernate + MySQL** (Fase 2): os três repositórios (`RepositorioAlunos`, `RepositorioAmbientes`, `RepositorioAgendamentos`) usam `EntityManager` para `SELECT`/`INSERT`/`UPDATE`/`DELETE` reais no banco `fitzone`, mantendo a mesma assinatura de métodos da Fase 1 (Repository Pattern na prática — o `AdministradorSistema` quase não mudou). `Ambiente` e `ServicoAdicional` usam herança `SINGLE_TABLE` com coluna discriminadora. O ID de `Agendamento` deixou de ser um contador manual em memória e passou a ser `AUTO_INCREMENT` do MySQL. DDL manual em `sql/schema.sql` (ver seção 3).
-- **Camadas separadas**: `entidades`, `controle`, `fronteira`, `excecoes` — cada uma com responsabilidade única.
-- **Interface textual refinada** (Fase 3): cores ANSI (`ConsoleUtil`) para erro/sucesso/aviso e para títulos/subtítulos em negrito + branco destacado; pausa com "Pressione ENTER para continuar" antes de retornar aos menus; validação de CPF duplicado antecipada e em loop no cadastro de aluno; espaçamento padronizado de uma linha entre mensagens comuns e mensagens de erro/sucesso/aviso; tabelas com colunas realinhadas (Ambientes, Agendamentos, Relatório por Aluno) para nomes mais longos; blocos do relatório de faturamento no padrão `===== FATURAMENTO POR DIA/AMBIENTE/ALUNO =====`, também em negrito + branco destacado.
+### Pendências conhecidas
 
-### Pontas soltas a fechar antes de evoluir
+Pontos identificados durante a Fase 4 e deixados conscientemente para depois:
 
-Pequenos ajustes que valem a pena resolver **antes** de começar a mexer em arquitetura ou interface nova, pra não carregar dívida técnica adiante:
-
-- [✔ ] Decidir sobre o atributo `disponivel` do `Ambiente`: usar de verdade (ex. marcar ambiente em manutenção) ou remover de vez — hoje ele não existe mais na classe, então é só confirmar que isso não aparece como pendência no diagrama entregue.
-- [✔ ] Criar uma exceção própria para "ID de ambiente já cadastrado" em vez de reaproveitar `AmbienteIndisponivelException` (que semanticamente é sobre disponibilidade de horário, não duplicidade de cadastro).
-- [✔ ] Documentar um roteiro de testes manuais — feito em `Roteiro.md`, com checklist completo (todas as exceções, todos os relatórios) e atualizado na Fase 2 pra refletir a persistência em MySQL.
-- [ ] Opcional, ainda em aberto: menus mais ricos com **Lanterna** ou **JLine** (setas, seleção interativa) — ficou de fora do escopo da Fase 3 por ser opcional (ver Fase 3 no roadmap); avaliar se vale a pena antes da Fase 4 ou se compensa pular direto pro Spring Boot.
+- [ ] **Valores em `DOUBLE`**: `valor_hora` e `valor_total` deveriam ser `DECIMAL` (`BigDecimal` no Java) para evitar erro de arredondamento em dinheiro. Exige uma migration nova (V5) e trocar `double` nas entidades, no cálculo e nos relatórios.
+- [ ] **Ids da faixa não são reaproveitados**: o próximo id de ambiente é `MAX + 1` do tipo. Se um ambiente do meio da faixa for excluído, o número não volta a ser usado — com 10 ids por tipo, a faixa pode esgotar antes da hora. Alternativa: procurar o primeiro id livre da faixa.
+- [ ] **Excluir aluno/ambiente com agendamentos** devolve a mensagem genérica "Conflito de integridade" (vinda do banco). Uma checagem prévia no service (`existsByAluno_Id`) com exceção própria daria uma mensagem mais clara.
+- [ ] **Relatórios agregam em memória** (`findAll()` + streams). Suficiente para o volume atual; com muitos dados, o ideal é consultas com `GROUP BY` no banco.
 
 ---
 
@@ -32,50 +33,73 @@ Pequenos ajustes que valem a pena resolver **antes** de começar a mexer em arqu
 
 A ideia aqui é evoluir em fases, sem misturar muita coisa nova de uma vez. Cada fase assume que a anterior está estável.
 
-### Fase 1 — Robustez e boas práticas (curto prazo, ainda em Java puro)
+### Fase 1 — Robustez e boas práticas (Java puro) ✔ (concluída)
 
 ✔ - Validações de entrada mais completas na camada de fronteira: formato de CPF, datas no passado, hora fim menor que hora início, quantidade de lockers negativa etc.
 ✔ - Javadoc nas classes principais (`AdministradorSistema`, `Agendamento`, `Ambiente`) — treina documentação de API, útil pra qualquer projeto futuro.
 ✔ - Testes automatizados com **JUnit 5** para a camada de controle, cobrindo as regras de negócio (sobreposição de horário, cálculo de valor total, exceções lançadas nos casos certos).
-✔ - Centralizar tratamento de erro de entrada (hoje cada menu repete `try/catch` parecido) — dá pra criar um pequeno utilitário de leitura validada (`lerInteiro()`, `lerData()`) reaproveitável entre os menus.
+✔ - Centralizar tratamento de erro de entrada (cada menu repetia `try/catch` parecido) com um pequeno utilitário de leitura validada (`lerInteiro()`, `lerData()`) reaproveitável entre os menus.
 
 ### Fase 2 — Persistência com banco de dados relacional ✔ (concluída)
 
 Trocar a serialização em `.dat` por um banco de verdade:
 
 - ✔ Migrado de `ObjectOutputStream`/`ObjectInputStream` para **JPA/Hibernate + MySQL**.
-- ✔ Tabelas modeladas em `sql/schema.sql`: `alunos`, `ambientes` (herança `SINGLE_TABLE`, coluna `tipo`), `agendamentos`, `servicos_adicionais` (herança `SINGLE_TABLE`, coluna `tipo`).
+- ✔ Tabelas modeladas em `sql/schema.sql`: `alunos`, `ambientes` (herança `SINGLE_TABLE`, coluna `tipo`), `agendamentos`, `servicos_adicionais` (herança `SINGLE_TABLE`, coluna `tipo`). *(Substituído por migrations Flyway na Fase 4.)*
 - ✔ Repositórios reescritos com `EntityManager`, mantendo a mesma assinatura de métodos que o `AdministradorSistema` já usava (Repository Pattern na prática).
 - ✔ `ServicoAdicional` convertida de interface para classe abstrata `@Entity` (decisão registrada: JPA não mapeia interfaces).
 - ✔ ID de `Agendamento` passou de contador manual para `AUTO_INCREMENT` do MySQL.
-- ✔ Otimizada a checagem de sobreposição de horário: `realizarAgendamento` não percorre mais todos os agendamentos em memória — agora usa `RepositorioAgendamentos.buscarConflitos(...)`, uma consulta JPQL que já filtra por ambiente/data/sobreposição direto no banco (normalmente retorna 0 ou 1 linha, em vez da tabela inteira). CPF/ID já são únicos naturalmente pela chave primária.
-- ✔ Roteiro de testes manuais (`Roteiro.md`) atualizado para a Fase 2 (nota sobre comportamento do `AUTO_INCREMENT`, instrução de como simular `FalhaPersistenciaException` com MySQL em vez de `.dat`).
+- ✔ Otimizada a checagem de sobreposição de horário: `realizarAgendamento` não percorre mais todos os agendamentos em memória — agora usa `RepositorioAgendamentos.buscarConflitos(...)`, uma consulta JPQL que já filtra por ambiente/data/sobreposição direto no banco (normalmente retorna 0 ou 1 linha, em vez da tabela inteira).
+- ✔ Roteiro de testes manuais (`Roteiro.md`) atualizado para a Fase 2.
 
 **Bugs encontrados e corrigidos durante a validação da Fase 2** (achados testando o sistema de ponta a ponta contra o MySQL real, não eram específicos de JPA/Hibernate):
 - `LeitorEntrada.lerHoraApos()` tinha a condição de validação invertida — aceitava hora de fim *anterior* à de início e rejeitava horários válidos. Corrigido.
 - `AdministradorSistema.relatorioPorAmbiente()` calculava horas totais sem aplicar o piso mínimo de 1h (mesma regra já usada em `Agendamento.calculaValorTotal()`), o que gerava valores negativos no relatório quando um agendamento tinha fim antes do início (efeito colateral do bug acima). Corrigido para ficar consistente com a mesma regra.
-- `hibernate.show_sql`/`hibernate.format_sql` desligados em `persistence.xml` — estavam poluindo o console com o SQL gerado a cada operação; era útil só durante o desenvolvimento inicial da Fase 2.
+- `hibernate.show_sql`/`hibernate.format_sql` desligados em `persistence.xml` — estavam poluindo o console com o SQL gerado a cada operação.
 
-- **Decisão consciente, não pendência**: os testes do JUnit viraram testes de integração contra o MySQL real (schema `fitzone`, mesmo usado em desenvolvimento) — rodam mais lento e dependem do banco estar no ar, e `mvn test` limpa as tabelas a cada execução. Avaliamos usar um schema `fitzone_test` separado (ou H2 em memória) só pro escopo de teste, mas decidimos que não vale a complexidade extra por enquanto. Fica registrado como possível evolução futura se o projeto crescer.
+- **Decisão da época (revista na Fase 4)**: os testes do JUnit viraram testes de integração contra o MySQL real, no mesmo schema `fitzone` do desenvolvimento, e `mvn test` limpava as tabelas a cada execução. Um schema `fitzone_test` separado foi descartado porque exigiria manter dois schemas à mão. Com o Flyway criando as tabelas sozinho, esse custo sumiu — na Fase 4 os testes passaram a usar o `fitzone_test`.
 
 ### Fase 3 — Melhorias de interface (ainda em texto) ✔ (concluída)
 
 - ✔ Cores ANSI no terminal (`ConsoleUtil`): vermelho para erro, verde para sucesso, amarelo para aviso; negrito + branco destacado para títulos, subtítulos e blocos de relatório.
-- ✔ Validação de entrada com nova tentativa em vez de cancelar a operação inteira ao digitar algo errado — já valia para formato (CPF, data, hora, inteiro) desde a Fase 1/2; na Fase 3 passou a valer também para CPF duplicado no cadastro de aluno, verificado assim que digitado, em loop, em vez de só no fim do cadastro.
-- ✔ Pausa "Pressione ENTER para continuar" ao fim de cada operação, antes de voltar ao menu — dá tempo de ler a mensagem de conclusão sem apressar o fluxo.
-- ✔ Espaçamento de uma linha padronizado entre qualquer mensagem comum do sistema e mensagens de erro/sucesso/aviso (resolvido direto nos métodos `erro()`/`sucesso()`/`aviso()` do `ConsoleUtil`, em vez de espalhar `println()` extras pelo código).
-- ✔ Tabelas de listagem/busca realinhadas (Ambientes, Agendamentos, Relatório por Aluno) — colunas mais largas para acomodar nomes gerados automaticamente (ex. "Sala de Musculação 101") sem colar na coluna seguinte.
-- ✔ Blocos internos do relatório de faturamento (por dia/ambiente/aluno) padronizados no mesmo estilo `===== TEXTO =====` usado em outros relatórios, com o mesmo destaque em negrito + branco.
-- Não feito, opcional: bibliotecas como **Lanterna** ou **JLine** pra menus mais ricos (setas, seleção, cores nativas) — o README já tratava isso como "se quiser ir além do texto puro", fora do escopo obrigatório da fase. Fica como possível item futuro, não como pendência.
+- ✔ Validação de entrada com nova tentativa em vez de cancelar a operação inteira ao digitar algo errado, inclusive para CPF duplicado no cadastro de aluno, verificado assim que digitado.
+- ✔ Pausa "Pressione ENTER para continuar" ao fim de cada operação, antes de voltar ao menu.
+- ✔ Espaçamento padronizado entre mensagens comuns e mensagens de erro/sucesso/aviso (resolvido direto nos métodos do `ConsoleUtil`).
+- ✔ Tabelas de listagem realinhadas e blocos do relatório de faturamento padronizados no estilo `===== TEXTO =====`.
+- Não feito, opcional: **Lanterna**/**JLine** para menus mais ricos — ficou obsoleto, porque a interface de console foi removida na Fase 4.
 
-### Fase 4 — Arquitetura em camadas "de produção" (rumo a Spring Boot)
+### Fase 4 — API REST com Spring Boot ✔ (concluída)
 
-Esse é o salto que mais aproveita o que você já vem estudando:
+A migração foi feita **à mão, passo a passo**, a partir do código da Fase 3. Uma primeira versão gerada com ajuda de IA ficou guardada na tag `fase4-teste`, como referência; a versão atual foi reescrita do zero para fins de aprendizado e aproveitou para revisar várias decisões.
 
-- `AdministradorSistema` vira uma ou mais classes `@Service`.
-- Repositórios viram interfaces `Spring Data JPA` (`AlunoRepository extends JpaRepository<Aluno, String>`, por exemplo).
-- Entidades ganham anotações JPA (`@Entity`, `@Id`, `@OneToMany` etc.) — praticamente o mesmo modelo, só que anotado.
-- Adicionar uma camada REST (`@RestController`) — isso já deixa o sistema pronto pra, no futuro, ter um front-end separado.
+**Estrutura e infraestrutura**
+- ✔ Projeto gerado pelo Spring Initializr (Spring Boot 4, Java 21, Maven Wrapper) e código movido para o pacote base `com.fitzone`, organizado em `domain` e `api`.
+- ✔ Credenciais em `.env` (fora do Git), importado pelo `application.properties`; o `.env.example` documenta as chaves.
+- ✔ **Flyway**: o `schema.sql` aplicado à mão virou 4 migrations versionadas. Regra adotada: migration já aplicada nunca é editada — correções vão numa migration nova.
+- ✔ Interface de console (`fronteira/`, `Main.java`) e persistência manual (`controle/`, `JPAUtil`, `persistence.xml`) removidas — o sistema agora é só API.
+
+**Modelo e banco**
+- ✔ `Aluno` ganhou **chave substituta** (`id INT AUTO_INCREMENT`); o CPF virou campo `UNIQUE`. Assim o CPF pode ser corrigido sem mexer em FKs e não aparece nas URLs da API (dado pessoal).
+- ✔ `Ambiente.id` passou de `VARCHAR` para `INT`: o `MAX` do próximo id deixou de comparar texto (`"99" > "101"`) e as conversões `parseInt`/`valueOf` sumiram.
+- ✔ Faixa de ids reduzida para **10 por tipo** (101–110, 201–210, 301–310, 401–410), garantida pelo enum `TipoAmbiente` e por uma constraint `CHECK` no banco.
+- ✔ Constraints `CHECK` para horário (`fim > início`), valores positivos, tipos válidos e quantidade de lockers; índice para a consulta de conflito de horário.
+- ✔ E-mail e telefone do aluno passaram a ser obrigatórios, e o e-mail, único.
+
+**Regras de negócio revisadas**
+- ✔ **Cobrança por hora completa**: só horas inteiras contam (2h40 → 2h), com mínimo de 1 hora. A regra ficou centralizada em `Agendamento.getHorasCobradas()`, usada no valor, no personal trainer e nos relatórios — a duplicação dessa regra foi a causa do bug de relatório da Fase 2.
+- ✔ **Personal trainer cobrado por hora** do agendamento (antes era valor fixo, apesar do Javadoc dizer "por hora").
+- ✔ Reagendar = cancelar + criar outro (não existe PUT de agendamento, de propósito: mudar o horário exigiria recalcular valor e checar conflito).
+
+**Camadas**
+- ✔ Repositórios viraram interfaces **Spring Data JPA**, com query methods (`existsByCpf`, `findByAluno_Id...`) e `@Query` para o conflito de horário e o `TYPE()` da herança.
+- ✔ `AdministradorSistema` dividido em 4 `@Service` (`AlunoService`, `AmbienteService`, `AgendamentoService`, `RelatorioService`) com `@Transactional`.
+- ✔ Exceções de domínio viraram **unchecked** (`RuntimeException`) — com exceção checked, o `@Transactional` não faz rollback. `FalhaPersistenciaException` foi removida (o Spring traduz erros de banco em `DataAccessException`).
+- ✔ DTOs (records) com Bean Validation; controllers REST com 201 + `Location` no POST, 204 no DELETE e CRUD completo de alunos e ambientes.
+- ✔ `ApiExceptionHandler` agrupando as exceções por categoria de status.
+
+**Testes**
+- ✔ 18 testes de integração dos services rodando no banco `fitzone_test` (criado automaticamente), com rollback ao fim de cada teste.
+- ✔ Coleção do Postman versionada em `postman/`, com caminho feliz e casos de erro.
 
 ### Fase 5 — Interface gráfica ou Web
 
@@ -87,47 +111,131 @@ Duas direções possíveis a partir da Fase 4:
 ### Fase 6 — Portfólio
 
 - Documentar o projeto com prints de tela, diagrama de classes atualizado e instruções claras de setup (esse próprio README pode evoluir pra isso).
-- Organizar o histórico do Git por fase (branches ou tags tipo `v1-poo`, `v2-jdbc`, `v3-spring-api`, `v4-web`), mostrando a evolução — isso conta muito mais do que só o código final.
+- Organizar o histórico do Git por fase (tags tipo `v1-poo`, `v2-jpa`, `v3-console`, `v4-spring-api`, `v5-web`), mostrando a evolução — isso conta muito mais do que só o código final.
 - Um projeto que nasce simples (CRUD + regras de negócio) e evolui até virar API + front-end é um ótimo case pra mostrar a clientes ou recrutadores que você entende o ciclo completo, não só uma parte isolada.
 
 ---
 
-## 3. Como rodar hoje (Maven + MySQL)
+## 3. Como rodar
 
-Pré-requisitos: JDK 21, Maven e um MySQL rodando localmente com o banco `fitzone` já criado.
+**Pré-requisitos:** JDK 21 e MySQL **8.0.16 ou mais novo** rodando localmente (versões anteriores aceitam as constraints `CHECK` mas não as aplicam). Não é preciso instalar o Maven: o projeto traz o Maven Wrapper (`mvnw`).
 
-**Passo 1 — criar as tabelas** (uma vez só, ou sempre que `sql/schema.sql` mudar):
+**1. Criar o banco** (só o banco, vazio — as tabelas são criadas pelo Flyway):
+
+```sql
+CREATE DATABASE fitzone;
+```
+
+**2. Configurar as credenciais**: copie o `.env.example` para `.env` na raiz do projeto e preencha:
+
+```properties
+DB_USERNAME=root
+DB_PASSWORD=sua_senha_do_mysql
+```
+
+O `.env` está no `.gitignore` e nunca deve ser commitado. Se aparecer `Could not resolve placeholder 'DB_USERNAME'`, a aplicação foi executada fora da raiz do projeto e não encontrou o arquivo.
+
+**3. Subir a API** (na raiz do projeto):
 
 ```bash
-mysql -u SEU_USUARIO -p fitzone < sql/schema.sql
+.\mvnw.cmd spring-boot:run
 ```
 
-**Passo 2 — configurar credenciais**: copie `src/main/resources/META-INF/persistence.xml.example` para `src/main/resources/META-INF/persistence.xml` e troque `USUARIO_AQUI` / `SENHA_AQUI` pelas credenciais do seu MySQL. O `persistence.xml` real fica no `.gitignore` (contém senha em texto puro) — só o `.example` é versionado, como modelo.
+(No Linux/macOS: `./mvnw spring-boot:run`.) Na primeira execução, o Flyway aplica as migrations e cria as tabelas. A API fica em `http://localhost:8080/api`.
 
-**Passo 3 — compilar e rodar**:
+**4. Rodar os testes:**
 
 ```bash
-mvn clean compile
-mvn exec:java -Dexec.mainClass="Main"
-# ou, se preferir gerar o jar:
-mvn clean package
-java -cp target/classes:target/dependency/* Main   # ajuste o classpath das dependências conforme seu Maven
+.\mvnw.cmd test
 ```
 
-**Rodar os testes** (atenção: agora são testes de integração, batem no MySQL real e limpam as tabelas do schema `fitzone` a cada teste):
+Os testes usam o banco **`fitzone_test`**, criado automaticamente na primeira execução (profile `test`, em `src/test/resources/application-test.properties`). Cada teste roda numa transação desfeita no final, então o banco de testes fica sempre vazio e **o banco `fitzone` de desenvolvimento nunca é tocado**.
 
-```bash
-mvn test
+**5. Testar manualmente:** a coleção do Postman está em `postman/` e o checklist dos cenários em [Roteiro.md](Roteiro.md).
+
+---
+
+## 4. API
+
+| Recurso | Rotas |
+|---|---|
+| Alunos | `POST /api/alunos` · `GET /api/alunos` · `GET /api/alunos/{id}` · `GET /api/alunos/busca?cpf=` · `PUT /api/alunos/{id}` · `DELETE /api/alunos/{id}` |
+| Ambientes | `POST /api/ambientes` · `GET /api/ambientes` · `GET /api/ambientes/{id}` · `PUT /api/ambientes/{id}` (só observações) · `DELETE /api/ambientes/{id}` |
+| Agendamentos | `POST /api/agendamentos` · `GET /api/agendamentos` · `GET /api/agendamentos/{id}` · `POST /api/agendamentos/{id}/servicos` · `DELETE /api/agendamentos/{id}` |
+| Relatórios | `GET /api/relatorios/alunos/{id}` · `GET /api/relatorios/ambientes` · `GET /api/relatorios/faturamento` · `GET /api/relatorios/servicos` |
+
+Exemplos de corpo:
+
+```jsonc
+// POST /api/alunos
+{ "cpf": "12345678901", "nome": "Ana Souza", "email": "ana@email.com", "telefone": "11987654321" }
+
+// POST /api/ambientes   (tipo: MUSCULACAO | YOGA | CROSSFIT | PISCINA)
+{ "tipo": "YOGA", "observacoes": "Sala climatizada" }
+
+// POST /api/agendamentos
+{ "alunoId": 1, "ambienteId": 101, "data": "2026-12-01", "horaInicio": "08:00", "horaFim": "10:40" }
+
+// POST /api/agendamentos/{id}/servicos   (tipo: AVALIACAO_FISICA | NUTRICIONISTA | PERSONAL_TRAINER | LOCKER)
+{ "tipo": "LOCKER", "quantidade": 2 }
 ```
 
-## 4. Estrutura de pastas
+Todo erro volta no mesmo formato:
+
+```json
+{
+  "status": 400,
+  "titulo": "Dados inválidos",
+  "mensagem": "Um ou mais campos estão inválidos. Corrija e tente novamente.",
+  "caminho": "/api/alunos",
+  "dataHora": "2026-10-20T16:30:00",
+  "campos": [ { "nome": "cpf", "mensagem": "O CPF deve conter exatamente 11 dígitos, sem pontos ou traço" } ]
+}
+```
+
+### Regras de negócio e preços
+
+| Item | Valor |
+|---|---|
+| Sala de Musculação (ids 101–110) | R$ 100,00/h |
+| Sala de Yoga (ids 201–210) | R$ 70,00/h |
+| Sala de Crossfit (ids 301–310) | R$ 100,00/h |
+| Piscina (ids 401–410) | R$ 80,00/h |
+| Avaliação física | R$ 70,00 (fixo) |
+| Nutricionista | R$ 80,00 (fixo) |
+| Personal trainer | R$ 50,00 por hora cobrada do agendamento |
+| Locker | R$ 5,00 por unidade |
+
+- **Horas cobradas**: só horas completas (2h40 → 2h); reservas menores que 1 hora pagam 1 hora cheia.
+- **Conflito de horário**: dois agendamentos no mesmo ambiente e dia não podem se sobrepor; horários "encostados" (8h–9h e 9h–10h) são permitidos.
+- **Exclusão**: aluno ou ambiente com agendamentos não pode ser excluído (409). Cancelar um agendamento remove os serviços dele.
+
+---
+
+## 5. Estrutura de pastas
 
 ```
-fitzone/
-├── entidades/    # modelo de domínio (Aluno, Ambiente e subclasses, Agendamento, ServicoAdicional e subclasses) — agora anotado com JPA
-├── controle/     # regras de negócio (AdministradorSistema), repositórios (JPA/EntityManager) e JPAUtil
-├── fronteira/    # menus da interface textual + ConsoleUtil
-├── excecoes/     # exceções customizadas do domínio
-├── sql/          # schema.sql — DDL manual das tabelas MySQL
-└── Main.java     # ponto de entrada
+Projeto-FitZone/
+├── .env.example              # chaves de configuração (o .env real não é versionado)
+├── postman/                  # coleção do Postman (testes manuais)
+├── Roteiro.md                # checklist dos testes manuais
+└── src/
+    ├── main/
+    │   ├── java/com/fitzone/
+    │   │   ├── FitzoneApplication.java   # ponto de entrada Spring Boot
+    │   │   ├── domain/
+    │   │   │   ├── model/        # entidades JPA + enums TipoAmbiente e TipoServico
+    │   │   │   ├── repository/   # interfaces Spring Data JPA
+    │   │   │   ├── service/      # regras de negócio (@Service, @Transactional)
+    │   │   │   └── exception/    # exceções de domínio (unchecked)
+    │   │   └── api/
+    │   │       ├── controller/       # @RestController por recurso
+    │   │       ├── dto/              # records de request/response e dos relatórios
+    │   │       └── exceptionhandler/ # ApiExceptionHandler + ErroResposta
+    │   └── resources/
+    │       ├── application.properties
+    │       └── db/migration/     # migrations Flyway (V1..V4)
+    └── test/
+        ├── java/com/fitzone/domain/service/       # testes de integração dos services
+        └── resources/application-test.properties  # profile de teste (banco fitzone_test)
 ```
