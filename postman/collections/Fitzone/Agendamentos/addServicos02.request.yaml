@@ -1,0 +1,7 @@
+$kind: http-request
+url: "{{baseUrl}}/agendamentos/1/servicos"
+method: POST
+body:
+  type: json
+  content: '{"tipo":"LOCKER","quantidade":2}'
+order: 3000

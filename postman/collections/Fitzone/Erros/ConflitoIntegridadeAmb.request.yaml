@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{baseUrl}}/ambientes/101"
+method: DELETE
+order: 15000

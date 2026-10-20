@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{baseUrl}}/relatorios/servicos"
+method: GET
+order: 4000

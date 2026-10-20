@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{baseUrl}}/alunos/busca"
+method: GET
+order: 17000

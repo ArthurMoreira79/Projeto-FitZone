@@ -1,0 +1,7 @@
+$kind: http-request
+url: "{{baseUrl}}/alunos/1"
+method: PUT
+body:
+  type: json
+  content: '{"cpf":"12345678901","nome":"Ana Souza Lima","email":"ana@email.com","telefone":"11987654321"}'
+order: 3000

@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{baseUrl}}/alunos/1"
+method: DELETE
+order: 14000
