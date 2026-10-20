@@ -1,86 +1,112 @@
-# Roteiro de Testes Manuais — FitZone
+# Roteiro de Testes Manuais — FitZone (API REST)
 
-Este roteiro cobre todas as funcionalidades do sistema e o disparo de cada exceção customizada. Use-o como checklist antes da apresentação — e também como guia rápido caso o professor pergunte "o que acontece se eu fizer X".
+Este roteiro cobre todos os endpoints da API e o disparo de cada exceção e status de erro. Use-o como checklist antes de uma apresentação — e também como guia rápido caso alguém pergunte "o que acontece se eu fizer X".
+
+As requisições estão prontas na coleção do Postman em `postman/` (pastas Alunos, Ambientes, Agendamentos, Relatórios e Erros). Nas tabelas, as rotas omitem o prefixo `http://localhost:8080/api`.
 
 Convenção: **[ ]** = ainda não testado · **[x]** = testado e OK.
 
-> **Nota (Fase 2 — persistência MySQL):** os dados agora ficam em banco MySQL real (via JPA/Hibernate), não mais em arquivos `.dat`. Dois efeitos práticos pra ter em mente ao rodar este roteiro:
-> - Os IDs de agendamento (`AUTO_INCREMENT`) **não resetam sozinhos** ao apagar registros — é normal ver IDs como #7, #8 mesmo numa tabela "vazia" se já rodou testes antes. Isso não é bug, é comportamento padrão de banco relacional.
-> - Rodar `mvn test` limpa as tabelas do schema `fitzone` (é assim que os testes garantem um estado previsível) — não rode os testes automatizados no meio de uma sessão deste roteiro manual, ou vai perder os dados que acabou de cadastrar.
+> **Antes de começar**
+> - Os ids esperados abaixo assumem um banco **vazio**. Para recomeçar do zero: `DROP DATABASE fitzone; CREATE DATABASE fitzone;` no MySQL e suba a aplicação de novo (o Flyway recria as tabelas).
+> - Ids `AUTO_INCREMENT` (alunos, agendamentos, serviços) **não voltam** ao apagar registros: depois de excluir algo, o próximo id continua a sequência. Não é bug, é o comportamento padrão do MySQL.
+> - Rode os casos **na ordem**: os de agendamento dependem dos alunos e ambientes criados antes, e os relatórios conferem os valores acumulados.
+> - Os testes automatizados (`mvnw test`) usam o banco `fitzone_test` e **não apagam** os dados deste roteiro.
+> - Datas de agendamento precisam ser futuras: se `2026-12-01` já tiver passado, use qualquer data futura.
 
 ---
 
 ## Módulo 1 — Alunos
 
-| # | Cenário | Passos / Entrada | Resultado esperado |
-|---|---------|-------------------|---------------------|
-| TC01 | Cadastrar aluno com sucesso | Menu Alunos → 1 → CPF `11111111111`, nome, email, telefone | "Aluno cadastrado com sucesso!" |
-| TC02 | **Exceção:** CPF duplicado | Repetir TC01 com o mesmo CPF `11111111111` | `AlunoJaCadastradoException` → mensagem de erro amigável, sistema continua rodando |
-| TC03 | Buscar aluno existente | Menu Alunos → 2 → CPF `11111111111` | Exibe os dados do aluno em tabela |
-| TC04 | **Exceção:** buscar aluno inexistente | Menu Alunos → 2 → CPF `99999999999` (nunca cadastrado) | `AlunoNaoEncontradoException` → mensagem de erro, sem crash |
-| TC05 | Listar alunos | Menu Alunos → 3 (antes de cadastrar qualquer um, e depois de cadastrar 2+) | Vazio: "Nenhum aluno cadastrado." · Com dados: tabela alinhada com todos os alunos |
+| # | Cenário | Requisição / Corpo | Resultado esperado |
+|---|---------|--------------------|--------------------|
+| TC01 | Cadastrar aluno | `POST /alunos` · `{"cpf":"12345678901","nome":"Ana Souza","email":"ana@email.com","telefone":"11987654321"}` | **201**, `id: 1`, `dataCadastro` = hoje, header `Location: .../api/alunos/1` |
+| TC02 | Cadastrar segundo aluno | `POST /alunos` · `{"cpf":"98765432100","nome":"Bruno Lima","email":"bruno@email.com","telefone":"11912345678"}` | **201**, `id: 2` |
+| TC03 | Listar alunos | `GET /alunos` | **200**, lista com os 2 alunos |
+| TC04 | Buscar por id | `GET /alunos/1` | **200**, dados da Ana |
+| TC05 | Buscar por CPF | `GET /alunos/busca?cpf=12345678901` | **200**, dados da Ana |
+| TC06 | Atualizar aluno | `PUT /alunos/1` · JSON do TC01 com `"nome":"Ana Souza Lima"` | **200**, nome novo e `dataCadastro` **igual** à do TC01 |
+| TC07 | **Erro:** aluno inexistente | `GET /alunos/99` | **404** "Recurso não encontrado" |
+| TC08 | **Erro:** CPF duplicado | `POST /alunos` · JSON do TC01 | **409** "CPF 12345678901 já cadastrado." |
+| TC09 | **Erro:** e-mail duplicado | `POST /alunos` · JSON do TC02 com outro CPF e `"email":"ana@email.com"` | **409** "E-mail ana@email.com já cadastrado." |
+| TC10 | **Erro:** CPF de outro aluno na atualização | `PUT /alunos/2` · JSON do TC02 com `"cpf":"12345678901"` | **409** "já pertence a outro aluno" |
+| TC11 | **Erro:** campos inválidos | `POST /alunos` · `{"cpf":"123","nome":"","email":"x","telefone":"1"}` | **400** "Dados inválidos", com 4 itens em `campos` |
+| TC12 | **Erro:** id com tipo errado | `GET /alunos/abc` | **400** "Parâmetro inválido" |
+| TC13 | **Erro:** parâmetro ausente | `GET /alunos/busca` (sem `?cpf=`) | **400** "Informe o parâmetro 'cpf'." |
+| TC14 | **Erro:** verbo não suportado | `DELETE /alunos` (sem id) | **405** "Método não permitido" |
 
 ---
 
 ## Módulo 2 — Ambientes
 
-| # | Cenário | Passos / Entrada | Resultado esperado |
-|---|---------|-------------------|---------------------|
-| TC06 | Cadastrar um ambiente de cada tipo | Menu Ambientes → 1, repetir para tipos 1 (Musculação), 2 (Yoga), 3 (Crossfit), 4 (Piscina), com IDs `A1`, `A2`, `A3`, `A4` | "Ambiente cadastrado com sucesso!" para cada um |
-| TC07 | **Exceção:** ID de ambiente duplicado | Repetir cadastro usando ID `A1` de novo | `AmbienteJaCadastradoException` → mensagem "Já existe um ambiente cadastrado com o ID 'A1'." |
-| TC08 | Listar ambientes | Menu Ambientes → 2 | Tabela com Tipo, ID, Nome e Valor/Hora de todos os cadastrados |
+| # | Cenário | Requisição / Corpo | Resultado esperado |
+|---|---------|--------------------|--------------------|
+| TC15 | Cadastrar ambiente | `POST /ambientes` · `{"tipo":"MUSCULACAO","observacoes":"Térreo"}` | **201**, `id: 101`, `nome: "Sala de Musculação 101"`, `valorHora: 100.0` |
+| TC16 | Cadastrar ambiente de outro tipo | `POST /ambientes` · `{"tipo":"YOGA"}` | **201**, `id: 201`, `valorHora: 70.0` |
+| TC17 | Listar ambientes | `GET /ambientes` | **200**, lista com 101 e 201 |
+| TC18 | Atualizar observações | `PUT /ambientes/201` · `{"observacoes":"Sala climatizada"}` | **200**, observações novas; id, nome e valor inalterados |
+| TC19 | **Erro:** tipo inexistente | `POST /ambientes` · `{"tipo":"BOXE"}` | **400** "Corpo da requisição inválido" |
+| TC20 | **Erro:** JSON malformado | `POST /ambientes` · `{"tipo":` | **400** "Corpo da requisição inválido" |
+| TC21 | **Erro:** faixa do tipo esgotada | Repetir `POST /ambientes` · `{"tipo":"YOGA"}` 10 vezes | As 9 primeiras: **201** (ids 202 a 210) · a 10ª: **409** "faixa 201-210 esgotada" |
+| TC22 | **Erro:** formato diferente de JSON | `POST /ambientes` com Body em **Text** (não JSON) | **415** "Formato não suportado" |
 
 ---
 
 ## Módulo 3 — Agendamentos e Serviços
 
-| # | Cenário | Passos / Entrada | Resultado esperado |
-|---|---------|-------------------|---------------------|
-| TC09 | Criar agendamento sem serviços | Menu Agendamentos → 1 → CPF `11111111111`, ambiente `A1`, data futura, `08:00`–`09:00`, depois `0` (finalizar sem serviço) | Agendamento criado, valor = 1h × valor/hora do ambiente |
-| TC10 | Criar agendamento com serviços adicionais | Repetir TC09 escolhendo 1 ou mais serviços (avaliação física, nutricionista, personal trainer, locker com quantidade) antes de finalizar | Valor total = horas × valor/hora + soma dos serviços — confira a conta na tela |
-| TC11 | **Exceção:** aluno inexistente | Menu Agendamentos → 1 → CPF `00000000000` (não cadastrado) | `AlunoNaoEncontradoException` → mensagem de erro, operação cancelada |
-| TC12 | **Exceção:** ambiente inexistente | Menu Agendamentos → 1 → CPF válido, ID de ambiente `Z9` (não cadastrado) | Erro "Ambiente com ID 'Z9' não encontrado." (`IllegalArgumentException`, exceção padrão do Java — não é uma das 6 customizadas, mas vale mencionar na arguição) |
-| TC13 | **Exceção:** horário sobreposto | Criar novo agendamento para o mesmo ambiente `A1`, mesma data do TC09, horário que se sobrepõe (ex.: `08:30`–`09:30`) | `AmbienteIndisponivelException` → "Ambiente já reservado das 08:00 às 09:00." |
-| TC14 | **Exceção:** opção de serviço inválida | Durante a seleção de serviços (TC09/TC10), digite uma opção fora do menu (ex.: `9`) | `ServicoInvalidoException` → "Opção de serviço inexistente."; operação de criação é cancelada |
-| TC15 | Adicionar serviço a reserva existente | Menu Agendamentos → 3 → ID de uma reserva já criada, escolha um serviço | "Serviço adicionado com sucesso à reserva #N."; valor total da reserva é atualizado |
-| TC16 | **Exceção:** ID de reserva inexistente | Menu Agendamentos → 3 → ID `9999` (não existe) | `AgendamentoNaoEncontradoException` → mensagem de erro |
-| TC17 | **Exceção:** serviço inválido ao adicionar | Menu Agendamentos → 3 → ID válido, opção de serviço `9` | `ServicoInvalidoException` → mensagem de erro |
-| TC18 | Cancelar agendamento | Menu Agendamentos → 2 → ID de uma reserva existente | "Agendamento #N cancelado com sucesso." |
-| TC19 | **Exceção:** cancelar reserva inexistente | Menu Agendamentos → 2 → ID `9999` | `AgendamentoNaoEncontradoException` → mensagem de erro |
-| TC20 | Listar agendamentos | Menu Agendamentos → 4 | Tabela com ID, Aluno, Ambiente, Data, Horário e Total de cada agendamento ativo |
+| # | Cenário | Requisição / Corpo | Resultado esperado |
+|---|---------|--------------------|--------------------|
+| TC23 | Criar agendamento | `POST /agendamentos` · `{"alunoId":1,"ambienteId":101,"data":"2026-12-01","horaInicio":"08:00","horaFim":"10:40"}` | **201**, `id: 1`, `horasCobradas: 2` (2h40 → 2h), `valorTotal: 200.0` |
+| TC24 | Adicionar personal trainer | `POST /agendamentos/1/servicos` · `{"tipo":"PERSONAL_TRAINER"}` | **200**, `valorTotal: 300.0` (2h × R$ 50 de personal) |
+| TC25 | Adicionar locker | `POST /agendamentos/1/servicos` · `{"tipo":"LOCKER","quantidade":2}` | **200**, `valorTotal: 310.0` |
+| TC26 | Buscar agendamento | `GET /agendamentos/1` | **200**, com os 2 serviços na lista `servicos` |
+| TC27 | Listar agendamentos | `GET /agendamentos` | **200** |
+| TC28 | **Erro:** locker sem quantidade | `POST /agendamentos/1/servicos` · `{"tipo":"LOCKER"}` | **400** "Informe a quantidade de lockers." |
+| TC29 | **Erro:** horário sobreposto | `POST /agendamentos` · `{"alunoId":2,"ambienteId":101,"data":"2026-12-01","horaInicio":"09:00","horaFim":"11:00"}` | **409** "Ambiente já reservado das 08:00 às 10:40." |
+| TC30 | Horário encostado é permitido | Mesmo do TC29 com `"horaInicio":"10:40","horaFim":"12:00"` | **201**, `id: 2` |
+| TC31 | **Erro:** fim antes do início | `POST /agendamentos` · `{"alunoId":2,"ambienteId":201,"data":"2026-12-01","horaInicio":"10:00","horaFim":"09:00"}` | **400** "A hora de fim (...) deve ser posterior à hora de início (...)" |
+| TC32 | **Erro:** data no passado | `POST /agendamentos` · `{"alunoId":2,"ambienteId":201,"data":"2020-01-01","horaInicio":"08:00","horaFim":"09:00"}` | **400**, item `data` em `campos` |
+| TC33 | **Erro:** ambiente inexistente | `POST /agendamentos` · `{"alunoId":2,"ambienteId":999,"data":"2026-12-02","horaInicio":"08:00","horaFim":"09:00"}` | **404** "Ambiente de id 999 não encontrado." |
+| TC34 | **Erro:** excluir aluno com agendamentos | `DELETE /alunos/1` | **409** "Conflito de integridade" |
+| TC35 | **Erro:** excluir ambiente com agendamentos | `DELETE /ambientes/101` | **409** "Conflito de integridade" |
+| TC36 | Cancelar agendamento | `DELETE /agendamentos/2` | **204**, sem corpo |
+| TC37 | **Erro:** agendamento cancelado | `GET /agendamentos/2` | **404** |
 
 ---
 
 ## Módulo 4 — Relatórios
 
-| # | Cenário | Passos / Entrada | Resultado esperado |
-|---|---------|-------------------|---------------------|
-| TC21 | Relatório por aluno — com dados | Menu Relatórios → 1 → CPF de um aluno com reservas | Lista as reservas daquele aluno em tabela |
-| TC21b | Relatório por aluno — sem dados | Menu Relatórios → 1 → CPF de um aluno sem reservas | "Nenhum agendamento encontrado para este aluno." |
-| TC22 | Relatório de utilização de ambientes | Menu Relatórios → 2 | Tabela: ambiente, quantidade de agendamentos, total de horas usadas |
-| TC23 | Relatório de faturamento | Menu Relatórios → 3 | Três blocos (por dia, por ambiente, por aluno) + total geral, todos batendo com os agendamentos criados |
-| TC24 | Relatório de serviços adicionais | Menu Relatórios → 4 | Tabela: tipo de serviço, quantidade vendida, valor total arrecadado |
+Valores esperados considerando o estado após o TC37 (só o agendamento #1 existe, com total de R$ 310,00).
+
+| # | Cenário | Requisição | Resultado esperado |
+|---|---------|------------|--------------------|
+| TC38 | Relatório por aluno | `GET /relatorios/alunos/1` | **200**, `quantidadeAgendamentos: 1`, `horasCobradas: 2`, `valorTotal: 310.0` |
+| TC39 | Ocupação por ambiente | `GET /relatorios/ambientes` | **200**, 101 com 1 agendamento e 2h; 201 a 210 com 0 |
+| TC40 | Faturamento | `GET /relatorios/faturamento` | **200**, `total: 310.0`, separado por dia, ambiente e aluno |
+| TC41 | Serviços adicionais | `GET /relatorios/servicos` | **200**, `LockerAcademia` (1, R$ 10,00) e `PersonalTrainer` (1, R$ 100,00) |
+| TC42 | **Erro:** endpoint inexistente | `GET /alunoss` | **404** "Endpoint não encontrado" |
 
 ---
 
-## Resumo — onde cada exceção é disparada
+## Resumo — onde cada erro é disparado
 
-| Exceção | Onde testar | Caso(s) |
+| Exceção / situação | Status | Caso(s) |
 |---|---|---|
-| `AlunoJaCadastradoException` | Menu Alunos → Cadastrar, com CPF repetido | TC02 |
-| `AlunoNaoEncontradoException` | Menu Alunos → Buscar, ou Agendamentos → Nova reserva, com CPF inexistente | TC04, TC11 |
-| `AmbienteJaCadastradoException` | Menu Ambientes → Cadastrar, com ID repetido | TC07 |
-| `AmbienteIndisponivelException` | Agendamentos → Nova reserva, com horário sobreposto no mesmo ambiente/data | TC13 |
-| `AgendamentoNaoEncontradoException` | Agendamentos → Adicionar serviço ou Cancelar, com ID inexistente | TC16, TC19 |
-| `ServicoInvalidoException` | Seleção de serviço (na criação ou ao adicionar depois), com opção fora do menu | TC14, TC17 |
+| `AlunoNaoEncontradoException` | 404 | TC07 |
+| `AmbienteNaoEncontradoException` | 404 | TC33 |
+| `AgendamentoNaoEncontradoException` | 404 | TC37 |
+| Rota inexistente (`NoResourceFoundException`) | 404 | TC42 |
+| `AlunoJaCadastradoException` | 409 | TC08, TC09, TC10 |
+| `LimiteAmbienteExcedidoException` | 409 | TC21 |
+| `AmbienteIndisponivelException` | 409 | TC29 |
+| FK em uso (`DataIntegrityViolationException`) | 409 | TC34, TC35 |
+| Bean Validation (`@Valid`) | 400 | TC11, TC32 |
+| JSON malformado ou enum inválido | 400 | TC19, TC20 |
+| `HorarioInvalidoException` | 400 | TC31 |
+| `ServicoInvalidoException` | 400 | TC28 |
+| Parâmetro com tipo errado / ausente | 400 | TC12, TC13 |
+| Verbo não suportado | 405 | TC14 |
+| Corpo que não é JSON | 415 | TC22 |
 
-`FalhaPersistenciaException` não está neste roteiro com um TC numerado por exigir simular indisponibilidade do banco, mas fica documentado como testar: **(Fase 2 — MySQL)** duas formas simples:
-1. Pare o serviço do MySQL local e tente abrir o sistema (`Main`) — o `AdministradorSistema` deve falhar já na inicialização com uma mensagem clara ("Não foi possível conectar ao banco de dados MySQL..."), sem stack trace cru pro usuário.
-2. Ou, com o MySQL rodando normalmente, edite temporariamente a senha em `persistence.xml` para uma incorreta e repita o teste — mesmo resultado esperado.
-Lembre de reverter a alteração depois do teste.
+`AmbienteJaCadastradoException` não tem caso neste roteiro: ela protege o cadastro caso o id calculado para um novo ambiente já exista (o `save()` com id preenchido sobrescreveria o registro), o que não acontece pela API em uso normal.
 
----
-
-## Sugestão de ordem de execução
-
-Para não perder dados de um teste pro outro, rode nesta ordem numa mesma sessão: **Alunos (TC01–TC05) → Ambientes (TC06–TC08) → Agendamentos (TC09–TC20) → Relatórios (TC21–TC24)**. Assim os relatórios já têm dados reais pra mostrar, e você testa as exceções de "não encontrado" antes de cadastrar o que falta, e as de "duplicado" depois.
+O status **500** ("Erro interno") só aparece para erros não previstos. Para vê-lo, pare o MySQL com a aplicação no ar e faça qualquer requisição: a resposta é genérica e o detalhe técnico fica apenas no log do servidor.
