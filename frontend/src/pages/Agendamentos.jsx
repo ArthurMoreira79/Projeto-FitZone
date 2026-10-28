@@ -5,6 +5,7 @@ import { ambientesApi } from '../api/ambientes'
 import { useAviso } from '../avisos/AvisoContext'
 import Botao from '../components/Botao'
 import CabecalhoPagina from '../components/CabecalhoPagina'
+import ItemAgenda from '../components/ItemAgenda'
 import MensagemErro from '../components/MensagemErro'
 import ModalDetalheAgendamento from '../components/ModalDetalheAgendamento'
 import ModalNovoAgendamento from '../components/ModalNovoAgendamento'
@@ -127,28 +128,7 @@ export default function Agendamentos() {
         <ol className="agenda-lista" aria-busy={agenda.carregando}>
           {filtrados.map(ag => (
             <li key={ag.id}>
-              {/* a linha inteira é um botão que abre o detalhe. Dentro de <button> só cabe texto
-                  "em linha", por isso os pedaços são <span> (com display: block no CSS), não <p>/<div> */}
-              <button type="button" className="agenda-item" data-tipo={ag.ambienteCodigo} onClick={() => setDetalhe(ag)}>
-                <span className="agenda-quando numero">
-                  <span className="agenda-data">{formatarData(ag.data)}</span>
-                  <span className="agenda-inicio">{formatarHora(ag.horaInicio)}</span>
-                  <span className="agenda-fim">até {formatarHora(ag.horaFim)}</span>
-                </span>
-
-                <span className="anilha" aria-hidden="true" />
-
-                <span className="agenda-detalhes">
-                  <span className="agenda-ambiente">{ag.ambienteNome}</span>
-                  <span>{ag.alunoNome}</span>
-                  <span className="agenda-extra">
-                    {plural(ag.horasCobradas, 'hora cobrada', 'horas cobradas')}
-                    {ag.servicos.length > 0 && `, com ${ag.servicos.map(s => s.descricao).join(', ')}`}
-                  </span>
-                </span>
-
-                <span className="agenda-valor numero">{formatarMoeda(ag.valorTotal)}</span>
-              </button>
+              <ItemAgenda agendamento={ag} onAbrir={setDetalhe} />
             </li>
           ))}
         </ol>

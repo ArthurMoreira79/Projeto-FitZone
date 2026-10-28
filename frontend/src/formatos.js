@@ -59,7 +59,12 @@ function paraIso(data) {
   return `${data.getFullYear()}-${mes}-${dia}`
 }
 
-export const hojeIso = () => paraIso(new Date())
+// recebe uma data opcional (ex.: a do useAgora); sem ela, usa o momento atual
+export const hojeIso = (data = new Date()) => paraIso(data)
+
+// Date → "HH:mm" no fuso local, para comparar com as horas da API ("08:00:00".slice(0, 5))
+export const horaIso = (data) =>
+  `${String(data.getHours()).padStart(2, '0')}:${String(data.getMinutes()).padStart(2, '0')}`
 
 // somarDias('2026-10-31', 1) → '2026-11-01' (o Date cuida da virada de mês e de ano)
 export function somarDias(iso, dias) {

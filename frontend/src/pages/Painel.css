@@ -1,0 +1,84 @@
+.painel {
+  display: grid;
+  gap: 40px;
+  transition: opacity 120ms;
+}
+
+.painel[aria-busy="true"] {
+  opacity: 0.5;
+}
+
+/* mesmos indicadores dos Relatórios (classes .indicador*), mas sem um número "herói": aqui os três pesam igual */
+.painel-indicadores {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.painel .indicador {
+  padding: 18px 20px;
+  background: var(--branco);
+  border: 1px solid var(--linha);
+  border-radius: 4px;
+}
+
+.painel .indicador-rotulo {
+  font-size: 0.875rem;
+  color: var(--concreto);
+}
+
+.painel .indicador-valor {
+  margin-top: 4px;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.indicador-de {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--concreto);
+}
+
+.painel-secao-cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 24px;
+  margin-bottom: 16px;
+}
+
+.painel-secao-cabecalho h2 {
+  font-size: 1.5rem;
+}
+
+/* "quarta-feira" → "Quarta-feira" só na exibição */
+.painel-hoje-titulo::first-letter {
+  text-transform: uppercase;
+}
+
+.painel-agora,
+.painel-ver-todos {
+  font-size: 0.875rem;
+}
+
+.painel-agora {
+  color: var(--concreto);
+}
+
+.painel-ver-todos {
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .painel {
+    transition: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .painel-indicadores {
+    grid-template-columns: 1fr;
+  }
+}
