@@ -70,3 +70,52 @@ a {
 a:hover {
   color: var(--anilha-azul);
 }
+
+/* ---------- tabelas (Ambientes, Alunos, Agendamentos) ---------- */
+
+/* a tabela rola sozinha no celular, sem empurrar a página para o lado */
+.tabela-rolagem {
+  overflow-x: auto;
+  background: var(--branco);
+  border: 1px solid var(--linha);
+  border-radius: 4px;
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabela th {
+  padding: 10px 16px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: left;
+  color: var(--concreto);
+  border-bottom: 2px solid var(--linha);
+  white-space: nowrap;
+}
+
+.tabela td {
+  padding: 12px 16px;
+  vertical-align: top;
+  border-bottom: 1px solid var(--linha);
+}
+
+.tabela tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* números alinhados à direita: unidades embaixo de unidades */
+.tabela .col-numero {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.vazio-tracinho {
+  color: var(--concreto);
+}
+
+.estado-carregando {
+  color: var(--concreto);
+}
