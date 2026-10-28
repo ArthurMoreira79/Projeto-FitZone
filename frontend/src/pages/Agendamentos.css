@@ -1,0 +1,124 @@
+/* ---------- filtros: data e tipo de ambiente (ambos opcionais) ---------- */
+
+.agenda-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.agenda-filtros .campo {
+  flex: 0 1 240px;
+}
+
+.agenda-filtros-acoes {
+  display: flex;
+  gap: 8px;
+}
+
+.agenda-resumo {
+  margin-bottom: 12px;
+  font-size: 0.875rem;
+  color: var(--concreto);
+}
+
+/* ---------- a lista ---------- */
+
+.agenda-lista {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  transition: opacity 120ms;
+}
+
+.agenda-lista[aria-busy="true"] {
+  opacity: 0.5;
+}
+
+.agenda-item {
+  display: grid;
+  grid-template-columns: 104px 12px minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 0 18px;
+  padding: 16px 20px;
+  background: var(--branco);
+  border: 1px solid var(--linha);
+  border-radius: 4px;
+}
+
+/* data e horário: o que o gestor confere primeiro; o início vem grande e condensado, como num placar */
+.agenda-quando {
+  display: flex;
+  flex-direction: column;
+}
+
+.agenda-data {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.agenda-inicio {
+  margin-top: 2px;
+  font-size: 2rem;
+  font-weight: 800;
+  font-stretch: 72%;
+  line-height: 1;
+}
+
+.agenda-fim {
+  margin-top: 4px;
+  font-size: 0.875rem;
+  color: var(--concreto);
+}
+
+.agenda-detalhes {
+  display: grid;
+  gap: 2px;
+  align-content: center;
+}
+
+.agenda-ambiente {
+  font-weight: 700;
+}
+
+.agenda-extra {
+  font-size: 0.875rem;
+  color: var(--concreto);
+}
+
+.agenda-valor {
+  align-self: center;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agenda-lista {
+    transition: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .agenda-filtros .campo {
+    flex-basis: 100%;
+  }
+
+  .agenda-item {
+    grid-template-columns: 84px 10px minmax(0, 1fr);
+    gap: 0 12px;
+    padding: 14px 16px;
+  }
+
+  .agenda-inicio {
+    font-size: 1.5rem;
+  }
+
+  /* no celular o valor desce para baixo dos detalhes */
+  .agenda-valor {
+    grid-column: 3;
+    margin-top: 6px;
+  }
+}

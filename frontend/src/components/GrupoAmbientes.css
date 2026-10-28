@@ -1,12 +1,4 @@
-.grupo-ambientes {
-  --cor-anilha: var(--concreto);
-}
-
-/* a única decisão de cor do front: cada tipo veste a sua anilha */
-.grupo-ambientes[data-tipo="MUSCULACAO"] { --cor-anilha: var(--anilha-vermelha); }
-.grupo-ambientes[data-tipo="YOGA"]       { --cor-anilha: var(--anilha-verde); }
-.grupo-ambientes[data-tipo="CROSSFIT"]   { --cor-anilha: var(--anilha-amarela); }
-.grupo-ambientes[data-tipo="PISCINA"]    { --cor-anilha: var(--anilha-azul); }
+/* as cores das anilhas (data-tipo) e a classe .anilha ficam no index.css: a agenda também usa */
 
 .grupo-cabecalho {
   display: flex;
@@ -15,14 +7,8 @@
   margin-bottom: 16px;
 }
 
-.anilha {
-  flex-shrink: 0;
-  width: 12px;
+.grupo-cabecalho .anilha {
   min-height: 52px;
-  background: var(--cor-anilha);
-  border-radius: 3px;
-  /* borda escura sutil: dá contorno à anilha amarela sobre o fundo claro */
-  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.18);
 }
 
 .grupo-cabecalho h2 {

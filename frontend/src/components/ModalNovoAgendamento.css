@@ -1,0 +1,75 @@
+/* data, início e fim lado a lado */
+.linha-campos {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.linha-campos .campo + .campo {
+  margin-top: 0;
+}
+
+/* ---------- horários já reservados ---------- */
+
+.ocupados,
+.previa {
+  margin-top: 20px;
+  padding: 14px 16px;
+  background: var(--giz);
+  border-radius: 4px;
+}
+
+.ocupados-titulo {
+  margin-bottom: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.ocupados ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.ocupados .conflita {
+  font-weight: 700;
+  color: var(--perigo);
+}
+
+/* ---------- prévia do valor ---------- */
+
+.previa {
+  border-left: 6px solid var(--cor-anilha, var(--borracha));
+}
+
+.previa-valor {
+  font-size: 2rem;
+  font-weight: 800;
+  font-stretch: 72%;
+  line-height: 1;
+}
+
+.previa-conta {
+  margin-top: 6px;
+}
+
+.previa-regra {
+  margin-top: 8px;
+  font-size: 0.875rem;
+  color: var(--concreto);
+}
+
+.ocupados[aria-busy="true"],
+.previa[aria-busy="true"] {
+  opacity: 0.6;
+}
+
+@media (max-width: 560px) {
+  .linha-campos {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .linha-campos .campo:first-child {
+    grid-column: 1 / -1;
+  }
+}

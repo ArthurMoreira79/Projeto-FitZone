@@ -38,3 +38,33 @@ export const normalizar = (texto) => texto.normalize('NFD').replace(/\p{Diacriti
 
 // plural(1, 'aluno', 'alunos') → "1 aluno"; plural(3, ...) → "3 alunos"
 export const plural = (n, singular, pluralizado) => `${n} ${n === 1 ? singular : pluralizado}`
+
+// "08:00:00" (como a API devolve) → "08:00"
+export const formatarHora = (hora) => hora.slice(0, 5)
+
+const dataLonga = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+
+// "2026-10-28" → "quarta-feira, 28 de outubro de 2026"
+export function formatarDataLonga(iso) {
+  const [ano, mes, dia] = iso.split('-').map(Number)
+  // new Date(ano, mes, dia) cria a data no fuso LOCAL (meia-noite em Brasília), sem o problema do UTC
+  return dataLonga.format(new Date(ano, mes - 1, dia))
+}
+
+// Date → "AAAA-MM-DD" no fuso local. Não use toISOString(): ela converte para UTC,
+// e depois das 21h em Brasília já devolveria o dia seguinte.
+function paraIso(data) {
+  const mes = String(data.getMonth() + 1).padStart(2, '0')
+  const dia = String(data.getDate()).padStart(2, '0')
+  return `${data.getFullYear()}-${mes}-${dia}`
+}
+
+export const hojeIso = () => paraIso(new Date())
+
+// somarDias('2026-10-31', 1) → '2026-11-01' (o Date cuida da virada de mês e de ano)
+export function somarDias(iso, dias) {
+  const [ano, mes, dia] = iso.split('-').map(Number)
+  return paraIso(new Date(ano, mes - 1, dia + dias))
+}
+
+export const ehDataIso = (texto) => /^\d{4}-\d{2}-\d{2}$/.test(texto ?? '')

@@ -211,3 +211,21 @@ a:hover {
   white-space: nowrap;
   border: 0;
 }
+
+/* ---------- anilhas: a cor de cada tipo de ambiente ---------- */
+
+/* a única decisão de cor do front: quem tem data-tipo veste a anilha do seu tipo */
+[data-tipo] { --cor-anilha: var(--concreto); }
+[data-tipo="MUSCULACAO"] { --cor-anilha: var(--anilha-vermelha); }
+[data-tipo="YOGA"]       { --cor-anilha: var(--anilha-verde); }
+[data-tipo="CROSSFIT"]   { --cor-anilha: var(--anilha-amarela); }
+[data-tipo="PISCINA"]    { --cor-anilha: var(--anilha-azul); }
+
+.anilha {
+  flex-shrink: 0;
+  width: 12px;
+  background: var(--cor-anilha);
+  border-radius: 3px;
+  /* borda escura sutil: dá contorno à anilha amarela sobre o fundo claro */
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.18);
+}

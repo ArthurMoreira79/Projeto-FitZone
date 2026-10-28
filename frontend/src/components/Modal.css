@@ -28,3 +28,8 @@
   gap: 12px;
   margin-top: 28px;
 }
+
+/* formulários com mais campos lado a lado (ex.: novo agendamento) */
+.modal.modal-largo {
+  width: min(640px, calc(100vw - 32px));
+}
