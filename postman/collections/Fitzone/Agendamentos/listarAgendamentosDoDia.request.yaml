@@ -1,0 +1,7 @@
+$kind: http-request
+url: "{{baseUrl}}/agendamentos?data=2026-12-01&ambienteId=101"
+method: GET
+queryParams:
+  data: 2026-12-01
+  ambienteId: "101"
+order: 4000

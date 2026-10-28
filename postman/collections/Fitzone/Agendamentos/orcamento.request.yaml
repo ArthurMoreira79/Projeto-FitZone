@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/agendamentos/orcamento?ambienteId=101&horaInicio=08:00&horaFim=10:40"
+method: GET
+queryParams:
+  ambienteId: "101"
+  horaInicio: 08:00
+  horaFim: 10:40
+order: 5000

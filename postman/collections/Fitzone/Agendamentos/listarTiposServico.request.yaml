@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{baseUrl}}/servicos/tipos"
+method: GET
+order: 6000

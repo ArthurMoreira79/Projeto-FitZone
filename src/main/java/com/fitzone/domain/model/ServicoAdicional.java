@@ -49,10 +49,14 @@ public abstract class ServicoAdicional {
     public Agendamento getAgendamento() { return agendamento; }
     public void setAgendamento(Agendamento agendamento) { this.agendamento = agendamento; }
 
+    /** O tipo deste serviço: dele vêm o nome, o preço e a forma de cobrança. */
+    public abstract TipoServico getTipoServico();
+
     /**
-     * @return uma descrição curta e legível do serviço, usada em listagens e recibos
+     * @return uma descrição curta e legível do serviço, usada em listagens e recibos.
+     *         Por padrão, o nome do tipo; o locker acrescenta a quantidade.
      */
-    public abstract String getDescricao();
+    public String getDescricao() { return getTipoServico().getNome(); }
 
     /**
      * @return o valor total a ser cobrado por esse serviço, já considerando

@@ -12,6 +12,8 @@ public record AgendamentoResponse(
         String alunoNome,
         Integer ambienteId,
         String ambienteNome,
+        // código do enum do tipo ("YOGA"): o front usa para pintar a anilha do ambiente
+        String ambienteCodigo,
         LocalDate data,
         LocalTime horaInicio,
         LocalTime horaFim,
@@ -26,6 +28,7 @@ public record AgendamentoResponse(
                 agendamento.getAluno().getNome(),
                 agendamento.getAmbiente().getId(),
                 agendamento.getAmbiente().getNome(),
+                agendamento.getAmbiente().getTipoAmbiente().name(),
                 agendamento.getDataAgendamento(),
                 agendamento.getHoraInicio(),
                 agendamento.getHoraFim(),

@@ -11,14 +11,12 @@ import jakarta.persistence.Entity;
 @Entity
 @DiscriminatorValue("AVALIACAO_FISICA")
 public class AvaliacaoFisica extends ServicoAdicional{
-    
-    private static final double VALOR_AVALIACAO = 70.0;
 
     public AvaliacaoFisica(){}
 
     @Override
-    public String getDescricao() { return "Avaliação Física"; }
+    public TipoServico getTipoServico() { return TipoServico.AVALIACAO_FISICA; }
 
     @Override
-    public double getValorTotal() { return VALOR_AVALIACAO; }
+    public double getValorTotal() { return getTipoServico().getValor(); }
 }

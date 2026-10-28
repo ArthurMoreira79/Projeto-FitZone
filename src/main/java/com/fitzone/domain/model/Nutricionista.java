@@ -10,14 +10,12 @@ import jakarta.persistence.Entity;
 @Entity
 @DiscriminatorValue("NUTRICIONISTA")
 public class Nutricionista extends ServicoAdicional{
-    
-    private static final double VALOR_CONSULTA = 80.0;
 
     public Nutricionista(){}
 
     @Override
-    public String getDescricao() { return "Nutricionista"; }
+    public TipoServico getTipoServico() { return TipoServico.NUTRICIONISTA; }
 
     @Override
-    public double getValorTotal() { return VALOR_CONSULTA; }
+    public double getValorTotal() { return getTipoServico().getValor(); }
 }

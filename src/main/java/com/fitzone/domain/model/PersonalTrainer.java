@@ -11,13 +11,11 @@ import jakarta.persistence.Entity;
 @Entity
 @DiscriminatorValue("PERSONAL_TRAINER")
 public class PersonalTrainer extends ServicoAdicional{
-    
-    private static final double VALOR_POR_HORA = 50.0;
 
     public PersonalTrainer(){}
 
     @Override
-    public String getDescricao() { return "Personal Trainer"; }
+    public TipoServico getTipoServico() { return TipoServico.PERSONAL_TRAINER; }
 
     @Override
     public double getValorTotal() {
@@ -25,7 +23,8 @@ public class PersonalTrainer extends ServicoAdicional{
             throw new IllegalStateException
             ("Personal Trainer precisa estar vinculado a um agendamento para calcular o valor.");
         }
-        return VALOR_POR_HORA * getAgendamento().getHorasCobradas();
+        // as horas vêm do agendamento: a regra de duração continua só em getHorasCobradas()
+        return getTipoServico().getValor() * getAgendamento().getHorasCobradas();
     }
 
 }

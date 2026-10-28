@@ -4,11 +4,13 @@ import com.fitzone.api.dto.*;
 import com.fitzone.domain.model.Agendamento;
 import com.fitzone.domain.model.Aluno;
 import com.fitzone.domain.model.ServicoAdicional;
+import com.fitzone.domain.model.TipoServico;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -96,13 +98,15 @@ public class RelatorioService {
     @Transactional(readOnly = true)
     public List<RelatorioServicoDTO> porServico() {
         // flatMap "achata" a lista de listas: de cada agendamento, tira os seus serviços
-        Map<String, List<ServicoAdicional>> servicosPorTipo = agendamentoService.listarTodos().stream()
+        // agrupa pelo enum (não pelo nome da classe Java): EnumMap mantém a ordem do TipoServico
+        Map<TipoServico, List<ServicoAdicional>> servicosPorTipo = agendamentoService.listarTodos().stream()
                 .flatMap(a -> a.getServicosAdicionais().stream())
-                .collect(Collectors.groupingBy(s -> s.getClass().getSimpleName(), TreeMap::new, Collectors.toList()));
+                .collect(Collectors.groupingBy(ServicoAdicional::getTipoServico,
+                        () -> new EnumMap<>(TipoServico.class), Collectors.toList()));
 
         return servicosPorTipo.entrySet().stream()
                 .map(grupo -> new RelatorioServicoDTO(
-                        grupo.getKey(),
+                        grupo.getKey().getNome(),
                         grupo.getValue().size(),
                         grupo.getValue().stream().mapToDouble(ServicoAdicional::getValorTotal).sum()))
                 .toList();

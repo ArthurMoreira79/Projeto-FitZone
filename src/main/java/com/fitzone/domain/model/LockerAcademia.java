@@ -12,8 +12,6 @@ import jakarta.persistence.Entity;
 @Entity
 @DiscriminatorValue("LOCKER")
 public class LockerAcademia extends ServicoAdicional{
-    
-    private static final double VALOR_POR_UNIDADE = 5.0;
 
     @Column(name = "quantidade")
     private int quantidade;
@@ -26,9 +24,17 @@ public class LockerAcademia extends ServicoAdicional{
      */
     public LockerAcademia(int quantidade) { this.quantidade = quantidade; }
 
-    @Override
-    public String getDescricao() { return "Locker (" + quantidade + " unidades)"; }
+    public int getQuantidade() { return quantidade; }
 
     @Override
-    public double getValorTotal() { return VALOR_POR_UNIDADE * quantidade; }
+    public TipoServico getTipoServico() { return TipoServico.LOCKER; }
+
+    // acrescenta a quantidade ao nome do tipo: "Locker (1 unidade)", "Locker (3 unidades)"
+    @Override
+    public String getDescricao() {
+        return super.getDescricao() + " (" + quantidade + (quantidade == 1 ? " unidade)" : " unidades)");
+    }
+
+    @Override
+    public double getValorTotal() { return getTipoServico().getValor() * quantidade; }
 }

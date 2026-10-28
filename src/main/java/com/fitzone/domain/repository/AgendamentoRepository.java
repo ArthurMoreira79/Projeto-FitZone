@@ -28,7 +28,21 @@ public interface AgendamentoRepository extends JpaRepository <Agendamento, Integ
                                       @Param("inicio") LocalTime inicio,
                                       @Param("fim") LocalTime fim);
     
-    //Relatório por aluno: filtra no banco em vez de findAll() + filtro em memória.  
+    /**
+     * Listagem com filtros opcionais: parâmetro null = "não filtra por isso".
+     * Assim uma consulta só atende a agenda do dia (data), os horários ocupados de
+     * um ambiente (data + ambienteId) e o histórico de um aluno (alunoId).
+     */
+    @Query("SELECT a FROM Agendamento a " +
+           "WHERE (:data IS NULL OR a.dataAgendamento = :data) " +
+           "AND (:ambienteId IS NULL OR a.ambiente.id = :ambienteId) " +
+           "AND (:alunoId IS NULL OR a.aluno.id = :alunoId) " +
+           "ORDER BY a.dataAgendamento, a.horaInicio")
+    List<Agendamento> buscarComFiltros(@Param("data") LocalDate data,
+                                       @Param("ambienteId") Integer ambienteId,
+                                       @Param("alunoId") Integer alunoId);
+
+    //Relatório por aluno: filtra no banco em vez de findAll() + filtro em memória.
     //"Aluno_ID" navega do atributo aluno para o id dele
     List<Agendamento> findByAluno_IdOrderByDataAgendamentoAscHoraInicioAsc(Integer alunoId);                                 
 }

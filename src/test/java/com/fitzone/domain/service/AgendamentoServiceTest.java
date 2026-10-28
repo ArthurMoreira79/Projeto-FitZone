@@ -84,6 +84,31 @@ class AgendamentoServiceTest {
         assertThat(comLocker.getValorTotal()).isEqualTo(115.0);
     }
 
+    @Test
+    void cadaServicoCobraOPrecoDoSeuTipo() {
+        Agendamento ag = agendar("08:00", "10:00"); // 2h cobradas
+        ServicoAdicional[] servicos = {
+                new AvaliacaoFisica(), new Nutricionista(), new PersonalTrainer(), new LockerAcademia(3)
+        };
+
+        for (ServicoAdicional servico : servicos) {
+            agendamentoService.adicionarServico(ag.getId(), servico);
+            TipoServico tipo = servico.getTipoServico();
+
+            // cada subclasse tem que estar ligada ao seu próprio enum (pega copia-e-cola errado)
+            assertThat(tipo.name()).isEqualTo(servico.getClass().getAnnotation(jakarta.persistence.DiscriminatorValue.class).value());
+            double esperado = switch (tipo.getCobranca()) {
+                case FIXO -> tipo.getValor();
+                case POR_HORA -> tipo.getValor() * 2;
+                case POR_UNIDADE -> tipo.getValor() * 3;
+            };
+            assertThat(servico.getValorTotal()).isEqualTo(esperado);
+        }
+
+        assertThat(servicos[3].getDescricao()).isEqualTo("Locker (3 unidades)");
+        assertThat(new LockerAcademia(1).getDescricao()).isEqualTo("Locker (1 unidade)");
+    }
+
     // ---------- conflito de horário ----------
 
     @Test
@@ -106,6 +131,41 @@ class AgendamentoServiceTest {
     @Test
     void deveRecusarHoraDeFimAntesDaHoraDeInicio() {
         assertThatThrownBy(() -> agendar("10:00", "09:00"))
+                .isInstanceOf(HorarioInvalidoException.class);
+    }
+
+    // ---------- listagem com filtros ----------
+
+    @Test
+    void deveFiltrarPorDataEAmbienteEmOrdemDeHorario() {
+        Ambiente yoga = ambienteService.cadastrar(TipoAmbiente.YOGA, null);
+        Agendamento dasDez = agendar("10:00", "11:00");
+        Agendamento dasOito = agendar("08:00", "09:00");
+        agendamentoService.realizar(aluno.getId(), yoga.getId(), DATA, LocalTime.parse("08:00"), LocalTime.parse("09:00"));
+        agendamentoService.realizar(aluno.getId(), sala.getId(), DATA.plusDays(1), LocalTime.parse("08:00"), LocalTime.parse("09:00"));
+
+        assertThat(agendamentoService.listar(DATA, sala.getId(), null))
+                .extracting(Agendamento::getId)
+                .containsExactly(dasOito.getId(), dasDez.getId()); // ordem de horário, não de cadastro
+        assertThat(agendamentoService.listar(DATA, null, null)).hasSize(3);
+        assertThat(agendamentoService.listar(null, null, aluno.getId())).hasSize(4);
+    }
+
+    // ---------- orçamento ----------
+
+    @Test
+    void orcamentoUsaAMesmaRegraDeCobrancaSemGravarNada() {
+        Agendamento previa = agendamentoService.orcar(sala.getId(), LocalTime.parse("08:00"), LocalTime.parse("10:40"));
+
+        assertThat(previa.getHorasCobradas()).isEqualTo(2);  // 2h40 -> 2h
+        assertThat(previa.getValorTotal()).isEqualTo(200.0);
+        assertThat(previa.getId()).isNull();                  // nunca passou pelo save
+        assertThat(agendamentoService.listar(null, sala.getId(), null)).isEmpty();
+    }
+
+    @Test
+    void orcamentoRecusaHoraDeFimAntesDaHoraDeInicio() {
+        assertThatThrownBy(() -> agendamentoService.orcar(sala.getId(), LocalTime.parse("10:00"), LocalTime.parse("09:00")))
                 .isInstanceOf(HorarioInvalidoException.class);
     }
 
