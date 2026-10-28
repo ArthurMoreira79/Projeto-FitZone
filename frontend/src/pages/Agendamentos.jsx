@@ -6,6 +6,7 @@ import { useAviso } from '../avisos/AvisoContext'
 import Botao from '../components/Botao'
 import CabecalhoPagina from '../components/CabecalhoPagina'
 import MensagemErro from '../components/MensagemErro'
+import ModalDetalheAgendamento from '../components/ModalDetalheAgendamento'
 import ModalNovoAgendamento from '../components/ModalNovoAgendamento'
 import { ehDataIso, formatarData, formatarHora, formatarMoeda, hojeIso, plural } from '../formatos'
 import { useDados } from '../hooks/useDados'
@@ -21,7 +22,15 @@ export default function Agendamentos() {
   const agenda = useDados(agendamentosApi.listar)
   const tipos = useDados(ambientesApi.listarTipos)
   const [novoAberto, setNovoAberto] = useState(false)
+  // o agendamento clicado na lista; null = detalhe fechado
+  const [detalhe, setDetalhe] = useState(null)
   const avisar = useAviso()
+
+  function aoCancelar(cancelado) {
+    setDetalhe(null)
+    avisar(`Agendamento cancelado: ${cancelado.ambienteNome}, ${formatarData(cancelado.data)} às ${formatarHora(cancelado.horaInicio)}.`)
+    agenda.recarregar()
+  }
 
   function aoAgendar(criado) {
     setNovoAberto(false)
@@ -117,25 +126,29 @@ export default function Agendamentos() {
       {!agenda.erro && filtrados.length > 0 && (
         <ol className="agenda-lista" aria-busy={agenda.carregando}>
           {filtrados.map(ag => (
-            <li key={ag.id} className="agenda-item" data-tipo={ag.ambienteCodigo}>
-              <div className="agenda-quando numero">
-                <span className="agenda-data">{formatarData(ag.data)}</span>
-                <span className="agenda-inicio">{formatarHora(ag.horaInicio)}</span>
-                <span className="agenda-fim">até {formatarHora(ag.horaFim)}</span>
-              </div>
+            <li key={ag.id}>
+              {/* a linha inteira é um botão que abre o detalhe. Dentro de <button> só cabe texto
+                  "em linha", por isso os pedaços são <span> (com display: block no CSS), não <p>/<div> */}
+              <button type="button" className="agenda-item" data-tipo={ag.ambienteCodigo} onClick={() => setDetalhe(ag)}>
+                <span className="agenda-quando numero">
+                  <span className="agenda-data">{formatarData(ag.data)}</span>
+                  <span className="agenda-inicio">{formatarHora(ag.horaInicio)}</span>
+                  <span className="agenda-fim">até {formatarHora(ag.horaFim)}</span>
+                </span>
 
-              <span className="anilha" aria-hidden="true" />
+                <span className="anilha" aria-hidden="true" />
 
-              <div className="agenda-detalhes">
-                <p className="agenda-ambiente">{ag.ambienteNome}</p>
-                <p>{ag.alunoNome}</p>
-                <p className="agenda-extra">
-                  {plural(ag.horasCobradas, 'hora cobrada', 'horas cobradas')}
-                  {ag.servicos.length > 0 && `, com ${ag.servicos.map(s => s.descricao).join(', ')}`}
-                </p>
-              </div>
+                <span className="agenda-detalhes">
+                  <span className="agenda-ambiente">{ag.ambienteNome}</span>
+                  <span>{ag.alunoNome}</span>
+                  <span className="agenda-extra">
+                    {plural(ag.horasCobradas, 'hora cobrada', 'horas cobradas')}
+                    {ag.servicos.length > 0 && `, com ${ag.servicos.map(s => s.descricao).join(', ')}`}
+                  </span>
+                </span>
 
-              <p className="agenda-valor numero">{formatarMoeda(ag.valorTotal)}</p>
+                <span className="agenda-valor numero">{formatarMoeda(ag.valorTotal)}</span>
+              </button>
             </li>
           ))}
         </ol>
@@ -143,6 +156,15 @@ export default function Agendamentos() {
 
       {novoAberto && (
         <ModalNovoAgendamento dataInicial={data} onFechar={() => setNovoAberto(false)} onAgendado={aoAgendar} />
+      )}
+
+      {detalhe && (
+        <ModalDetalheAgendamento
+          agendamento={detalhe}
+          onFechar={() => setDetalhe(null)}
+          onAlterado={agenda.recarregar}
+          onCancelado={aoCancelar}
+        />
       )}
     </>
   )

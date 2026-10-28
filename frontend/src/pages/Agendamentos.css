@@ -43,10 +43,25 @@
   grid-template-columns: 104px 12px minmax(0, 1fr) auto;
   align-items: stretch;
   gap: 0 18px;
+  width: 100%;
   padding: 16px 20px;
+  /* é um <button>: zera o visual padrão do navegador e herda a fonte da página */
+  font: inherit;
+  color: inherit;
+  text-align: left;
   background: var(--branco);
   border: 1px solid var(--linha);
   border-radius: 4px;
+  cursor: pointer;
+}
+
+.agenda-item:hover {
+  border-color: var(--borracha);
+}
+
+/* os pedaços são <span> (exigência do <button>); aqui viram blocos */
+.agenda-item span {
+  display: block;
 }
 
 /* data e horário: o que o gestor confere primeiro; o início vem grande e condensado, como num placar */
