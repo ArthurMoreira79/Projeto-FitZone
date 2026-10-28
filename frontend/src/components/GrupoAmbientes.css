@@ -52,14 +52,3 @@
 .grupo-ambientes .col-nome  { width: 36%; }
 .grupo-ambientes .col-valor { width: 140px; }
 .grupo-ambientes .col-acoes { width: 170px; }
-
-/* as linhas com botões ficam mais altas: centraliza o texto das outras células com eles */
-.grupo-ambientes .tabela td {
-  vertical-align: middle;
-}
-
-.acoes-linha {
-  display: flex;
-  justify-content: flex-end;
-  gap: 4px;
-}
