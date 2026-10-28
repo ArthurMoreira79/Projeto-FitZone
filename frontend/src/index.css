@@ -12,6 +12,10 @@
   --anilha-amarela: #F2B705;  /* Crossfit */
   --anilha-verde: #2E8540;    /* Yoga */
 
+    /* estados: separados das anilhas para não confundir "perigo" com "Musculação" */
+  --perigo: #8E1B10;
+  --perigo-hover: #A82516;
+
   --fonte: 'Archivo', system-ui, sans-serif;
   --largura-max: 1200px;
 

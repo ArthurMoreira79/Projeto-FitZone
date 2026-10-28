@@ -1,0 +1,72 @@
+.aviso-regiao {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 100;
+  max-width: min(420px, calc(100vw - 32px));
+}
+
+.aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 14px 14px 14px 18px;
+  border-radius: 4px;
+  color: var(--branco);
+  font-weight: 500;
+  animation: aviso-entra 180ms ease-out;
+}
+
+.aviso-sucesso {
+  background: var(--borracha);
+}
+
+.aviso-erro {
+  background: var(--perigo);
+}
+
+.aviso p {
+  flex: 1;
+  padding-top: 2px;
+}
+
+.aviso-fechar {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.aviso-fechar:hover {
+  background: rgb(255 255 255 / 0.15);
+}
+
+@keyframes aviso-entra {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* quem configurou o sistema para reduzir animações não vê o movimento */
+@media (prefers-reduced-motion: reduce) {
+  .aviso {
+    animation: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .aviso-regiao {
+    right: 16px;
+    left: 16px;
+    bottom: 16px;
+    max-width: none;
+  }
+}

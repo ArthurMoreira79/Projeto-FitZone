@@ -3,11 +3,14 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
 import './index.css'
 import App from './App.jsx'
+import AvisoProvider from './components/AvisoProvider'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
+      <AvisoProvider>
+        <App />
+      </AvisoProvider>
     </BrowserRouter>
   </StrictMode>,
 )

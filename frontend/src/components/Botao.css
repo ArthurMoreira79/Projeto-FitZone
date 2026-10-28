@@ -1,0 +1,47 @@
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px; /* área mínima de toque recomendada para celular */
+  padding: 0 18px;
+  font: inherit;
+  font-weight: 700;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.botao:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.botao-principal {
+  background: var(--borracha);
+  color: var(--branco);
+}
+
+.botao-principal:hover:not(:disabled) {
+  background: #3A444C;
+}
+
+.botao-secundario {
+  background: transparent;
+  color: var(--borracha);
+  border-color: var(--borracha);
+}
+
+.botao-secundario:hover:not(:disabled) {
+  background: #E2E7E5;
+}
+
+.botao-perigo {
+  background: var(--perigo);
+  color: var(--branco);
+}
+
+.botao-perigo:hover:not(:disabled) {
+  background: var(--perigo-hover);
+}
