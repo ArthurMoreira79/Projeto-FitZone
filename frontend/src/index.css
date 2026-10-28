@@ -1,0 +1,68 @@
+:root {
+  /* base */
+  --giz: #F2F4F3;
+  --branco: #FFFFFF;
+  --borracha: #22292F;
+  --concreto: #66717A;
+  --linha: #D3D9D7;
+
+  /* anilhas: cada cor identifica um tipo de ambiente, nunca é decoração */
+  --anilha-vermelha: #C8102E; /* Musculação */
+  --anilha-azul: #0057B8;     /* Piscina */
+  --anilha-amarela: #F2B705;  /* Crossfit */
+  --anilha-verde: #2E8540;    /* Yoga */
+
+  --fonte: 'Archivo', system-ui, sans-serif;
+  --largura-max: 1200px;
+
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--fonte);
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--borracha);
+  background: var(--giz);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 800;
+  font-stretch: 72%;
+  line-height: 1.05;
+}
+
+p {
+  margin: 0;
+}
+
+/* foco visível para quem navega pelo teclado (Tab) */
+:focus-visible {
+  outline: 3px solid var(--anilha-azul);
+  outline-offset: 2px;
+}
+
+/* algarismos de mesma largura: horários e valores alinham em coluna */
+.numero {
+  font-variant-numeric: tabular-nums;
+}
+a {
+  color: var(--borracha);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  color: var(--anilha-azul);
+}

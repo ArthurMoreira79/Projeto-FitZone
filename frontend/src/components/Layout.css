@@ -1,0 +1,92 @@
+.layout {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+}
+
+.topo {
+  background: var(--borracha);
+  color: var(--branco);
+}
+
+.topo-conteudo {
+  max-width: var(--largura-max);
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: stretch;
+  gap: 48px;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  padding: 14px 0;
+  font-size: 1.75rem;
+  font-weight: 900;
+  font-stretch: 62%;
+  letter-spacing: 0.02em;
+  color: inherit;
+  text-decoration: none;
+}
+
+.nav {
+  display: flex;
+  overflow-x: auto;
+}
+
+.nav a {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-weight: 600;
+  color: #B9C2C8;
+  text-decoration: none;
+  white-space: nowrap;
+  /* a borda existe sempre (transparente) para a aba ativa não "pular" de altura */
+  border-bottom: 4px solid transparent;
+}
+
+.nav a:hover {
+  color: var(--branco);
+}
+
+/* o NavLink coloca a classe "active" sozinho na rota atual */
+.nav a.active {
+  color: var(--branco);
+  border-bottom-color: var(--branco);
+}
+
+.conteudo {
+  width: 100%;
+  max-width: var(--largura-max);
+  margin: 0 auto;
+  padding: 40px 24px 64px;
+}
+
+@media (max-width: 720px) {
+  .topo-conteudo {
+    flex-direction: column;
+    gap: 0;
+    padding: 0 16px;
+  }
+
+  .marca {
+    padding: 12px 0 4px;
+  }
+
+  /* a nav encosta nas bordas da tela e rola na horizontal */
+  .nav {
+    margin: 0 -16px;
+    padding: 0 8px;
+  }
+
+  .nav a {
+    padding: 12px 10px;
+  }
+
+  .conteudo {
+    padding: 24px 16px 48px;
+  }
+}

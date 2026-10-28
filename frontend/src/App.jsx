@@ -1,48 +1,24 @@
-import { useEffect, useState } from 'react'
-import { ambientesApi } from './api/ambientes'
+import { Route, Routes } from 'react-router'
+import Layout from './components/Layout'
+import Painel from './pages/Painel'
+import Agendamentos from './pages/Agendamentos'
+import Alunos from './pages/Alunos'
+import Ambientes from './pages/Ambientes'
+import Relatorios from './pages/Relatorios'
+import NaoEncontrada from './pages/NaoEncontrada'
 
-function App() {
-  const [ambientes, setAmbientes] = useState([])
-  const [erro, setErro] = useState(null)
-
-  useEffect(() => {
-    async function carregar() {
-      try {
-        setAmbientes(await ambientesApi.listar())
-      } catch (e) {
-        setErro(e)
-      }
-    }
-    carregar()
-  }, [])
-
-  if (erro) {
-    return (
-      <div>
-        <p>Erro {erro.status}: {erro.message}</p>
-        {erro.campos?.length > 0 && (
-          <ul>
-            {erro.campos.map(c => <li key={c.nome}>{c.nome}: {c.mensagem}</li>)}
-          </ul>
-        )}
-      </div>
-    )
-  }
-
+export default function App() {
   return (
-    <main>
-      <h1>FitZone — Ambientes</h1>
-      {ambientes.length === 0
-        ? <p>Nenhum ambiente cadastrado.</p>
-        : (
-          <ul>
-            {ambientes.map(a => (
-              <li key={a.id}>{a.id} — {a.nome} (R$ {a.valorHora}/h)</li>
-            ))}
-          </ul>
-        )}
-    </main>
+    <Routes>
+      {/* rota "pai" sem path: o Layout envolve todas as filhas, que aparecem no <Outlet /> */}
+      <Route element={<Layout />}>
+        <Route index element={<Painel />} />
+        <Route path="agendamentos" element={<Agendamentos />} />
+        <Route path="alunos" element={<Alunos />} />
+        <Route path="ambientes" element={<Ambientes />} />
+        <Route path="relatorios" element={<Relatorios />} />
+        <Route path="*" element={<NaoEncontrada />} />
+      </Route>
+    </Routes>
   )
 }
-
-export default App
