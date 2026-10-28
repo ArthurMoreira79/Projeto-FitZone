@@ -119,3 +119,61 @@ a:hover {
 .estado-carregando {
   color: var(--concreto);
 }
+
+/* ---------- campos de formulário ---------- */
+
+.campo {
+  display: grid;
+  gap: 6px;
+}
+
+.campo + .campo {
+  margin-top: 20px;
+}
+
+.campo label {
+  font-weight: 600;
+}
+
+.campo-opcional {
+  font-weight: 400;
+  color: var(--concreto);
+}
+
+.campo :is(input, select, textarea) {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  font: inherit;
+  color: inherit;
+  background: var(--branco);
+  border: 2px solid var(--linha);
+  border-radius: 4px;
+}
+
+.campo textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.campo [aria-invalid="true"] {
+  border-color: var(--perigo);
+}
+
+.campo-rodape {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.875rem;
+}
+
+.campo-erro {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--perigo);
+}
+
+.campo-contador {
+  margin-left: auto;
+  color: var(--concreto);
+}

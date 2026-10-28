@@ -29,14 +29,15 @@ public class AmbienteService {
         int proximoId = (maiorId == null) ? tipo.getInicioFaixa() : maiorId + 1;
 
         if (proximoId > tipo.getFimFaixa()) {
-            throw new LimiteAmbienteExcedidoException("Limite de ambientes do tipo " + tipo + "atingido (faixa " + tipo.getInicioFaixa() + "-" + tipo.getFimFaixa() + " esgotada).");
+            throw new LimiteAmbienteExcedidoException("Limite de ambientes do tipo " + tipo.getNome()
+                    + " atingido (faixa " + tipo.getInicioFaixa() + "-" + tipo.getFimFaixa() + " esgotada).");
         }
 
         //Como o id NÃO é gerado pelo banco, o save() com id preenchido faz um merge:
         //se esse id já existe, ele SOBRESCREVERIA o ambiente em vez de dar erro. 
         //Esta checagem impede isso. 
         if(ambienteRepository.existsById(proximoId)) {
-            throw new AmbienteJaCadastradoException("ID " + proximoId + "já está em uso.");
+            throw new AmbienteJaCadastradoException("ID " + proximoId + " já está em uso.");
         }
 
         Ambiente ambiente = switch(tipo) {

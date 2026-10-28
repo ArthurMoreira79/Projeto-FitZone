@@ -1,9 +1,7 @@
 import { formatarMoeda } from '../formatos'
 import './GrupoAmbientes.css'
 
-export default function GrupoAmbientes({ tipo, salas }) {
-  // capacidade sai da faixa de ids que a API informa (201–210 = 10)
-  const capacidade = tipo.fimFaixa - tipo.inicioFaixa + 1
+export default function GrupoAmbientes({ tipo, salas, capacidade }) {
   const tituloId = `grupo-${tipo.codigo}`
 
   return (

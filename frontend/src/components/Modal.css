@@ -1,0 +1,30 @@
+.modal {
+  width: min(480px, calc(100vw - 32px));
+  padding: 28px;
+  color: var(--borracha);
+  background: var(--branco);
+  border: 0;
+  border-top: 6px solid var(--borracha);
+  border-radius: 4px;
+}
+
+.modal::backdrop {
+  background: rgb(34 41 47 / 0.6);
+}
+
+.modal h2 {
+  font-size: 1.75rem;
+  margin-bottom: 20px;
+}
+
+.modal-mensagem {
+  color: var(--concreto);
+}
+
+.modal-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 28px;
+}

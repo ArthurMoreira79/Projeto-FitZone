@@ -1,5 +1,6 @@
-import { useEffect, useId, useRef } from 'react'
+import { useId } from 'react'
 import Botao from './Botao'
+import Modal from './Modal'
 import './ModalConfirmacao.css'
 
 export default function ModalConfirmacao({
@@ -11,23 +12,10 @@ export default function ModalConfirmacao({
   onCancelar,
   processando = false,
 }) {
-  const ref = useRef(null)
   const tituloId = useId()
 
-  // o estado "aberto" do React manda; o efeito só sincroniza o <dialog> com ele
-  useEffect(() => {
-    const dialog = ref.current
-    if (aberto && !dialog.open) dialog.showModal()
-    if (!aberto && dialog.open) dialog.close()
-  }, [aberto])
-
-  function aoApertarEsc(evento) {
-    evento.preventDefault() // impede o navegador de fechar sozinho...
-    if (!processando) onCancelar() // ...e deixa o React decidir
-  }
-
   return (
-    <dialog ref={ref} className="modal" aria-labelledby={tituloId} onCancel={aoApertarEsc}>
+    <Modal aberto={aberto} onFechar={onCancelar} bloqueado={processando} tituloId={tituloId} className="modal-perigo">
       <h2 id={tituloId}>{titulo}</h2>
       <p className="modal-mensagem">{mensagem}</p>
 
@@ -40,6 +28,6 @@ export default function ModalConfirmacao({
           {rotuloConfirmar}
         </Botao>
       </div>
-    </dialog>
+    </Modal>
   )
 }
