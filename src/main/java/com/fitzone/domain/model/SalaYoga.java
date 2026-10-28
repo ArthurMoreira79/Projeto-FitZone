@@ -11,9 +11,7 @@ import jakarta.persistence.Entity;
 
 @Entity
 @DiscriminatorValue("YOGA")
-public class SalaYoga extends Ambiente{
-
-    private static final double VALOR_HORA_FIXO = 70.0;
+public class SalaYoga extends Ambiente {
 
     protected SalaYoga() { } // exigido pelo JPA
 
@@ -21,12 +19,12 @@ public class SalaYoga extends Ambiente{
      * @param id gerado pelo AmbienteService (faixa 201-210)
      * @param observacoes texto livre e opcional digitado pelo usuário
      */
-    public SalaYoga(Integer id, String observacoes){
-        super(id, "Sala de Yoga " + id, VALOR_HORA_FIXO, observacoes);
+    public SalaYoga(Integer id, String observacoes) {
+        super(id, TipoAmbiente.YOGA.getNome() + " " + id, TipoAmbiente.YOGA.getValorHora(), observacoes);
     }
 
     @Override
-    public String getTipo() { return "Sala de Yoga"; }
+    public TipoAmbiente getTipoAmbiente() { return TipoAmbiente.YOGA; }
 
     @Override
     public String getDescricao() { return "Tipo: " + getTipo() + " | ID: " + getId() + " | Nome: " + getNome() + " | Valor/h: R$" + getValorHora(); }

@@ -2,6 +2,7 @@ import { request } from './client'
 
 export const ambientesApi = {
   listar: () => request('/ambientes'),
+  listarTipos: () => request('/ambientes/tipos'),
   buscar: (id) => request(`/ambientes/${id}`),
   cadastrar: (tipo, observacoes) =>
     request('/ambientes', { method: 'POST', body: { tipo, observacoes } }),

@@ -62,7 +62,10 @@ public abstract class Ambiente {
     public String getObservacoes()               { return observacoes; }
     public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
 
-    public abstract String getTipo();
+    /** O tipo deste ambiente: dele vêm o nome do tipo, o preço e a faixa de ids. */
+    public abstract TipoAmbiente getTipoAmbiente();
+
+    public String getTipo() { return getTipoAmbiente().getNome(); }
     public abstract String getDescricao();
 
         @Override

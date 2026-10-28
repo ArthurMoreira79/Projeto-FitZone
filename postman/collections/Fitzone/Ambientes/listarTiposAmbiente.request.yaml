@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{baseUrl}}/ambientes/tipos"
+method: GET
+order: 4000

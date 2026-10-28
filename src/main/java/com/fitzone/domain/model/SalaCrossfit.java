@@ -13,8 +13,6 @@ import jakarta.persistence.Entity;
 @DiscriminatorValue("CROSSFIT")
 public class SalaCrossfit extends Ambiente{
 
-    private static final double VALOR_HORA_FIXO = 100.0;
-
     protected SalaCrossfit() { } // exigido pelo JPA
 
     /**
@@ -22,11 +20,11 @@ public class SalaCrossfit extends Ambiente{
      * @param observacoes texto livre e opcional digitado pelo usuário
      */
     public SalaCrossfit(Integer id, String observacoes){
-        super(id, "Sala de Crossfit " + id, VALOR_HORA_FIXO, observacoes);
+        super(id, TipoAmbiente.CROSSFIT.getNome() + " " + id, TipoAmbiente.CROSSFIT.getValorHora(), observacoes);
     }
 
     @Override
-    public String getTipo() { return "Sala de Crossfit"; }
+    public TipoAmbiente getTipoAmbiente() { return TipoAmbiente.CROSSFIT; }
 
     @Override
     public String getDescricao() { return "Tipo: " + getTipo() + " | ID: " + getId() + " | Nome: " + getNome() + " | Valor/h: R$" + getValorHora(); }

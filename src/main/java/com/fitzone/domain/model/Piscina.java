@@ -13,8 +13,6 @@ import jakarta.persistence.Entity;
 @DiscriminatorValue("PISCINA")
 public class Piscina extends Ambiente{
 
-    private static final double VALOR_HORA_FIXO = 80.0;
-
     protected Piscina() { } // exigido pelo JPA
 
     /**
@@ -22,11 +20,11 @@ public class Piscina extends Ambiente{
      * @param observacoes texto livre e opcional digitado pelo usuário
      */
     public Piscina(Integer id, String observacoes){
-        super(id, "Piscina " + id, VALOR_HORA_FIXO, observacoes);
+        super(id, TipoAmbiente.PISCINA.getNome() + " " + id, TipoAmbiente.PISCINA.getValorHora(), observacoes);
     }
 
     @Override
-    public String getTipo() { return "Piscina"; }
+    public TipoAmbiente getTipoAmbiente() { return TipoAmbiente.PISCINA; }
 
     @Override
     public String getDescricao() { return "Tipo: " + getTipo() + " | ID: " + getId() + " | Nome: " + getNome() + " | Valor/h: R$" + getValorHora(); }

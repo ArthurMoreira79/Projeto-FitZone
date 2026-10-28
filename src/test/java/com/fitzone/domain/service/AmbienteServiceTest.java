@@ -58,4 +58,16 @@ class AmbienteServiceTest {
         assertThat(atualizada.getObservacoes()).isEqualTo("Depois");
         assertThat(atualizada.getNome()).isEqualTo("Sala de Crossfit 301");
     }
+
+    @Test
+    void nomeEPrecoDoAmbienteVemDoTipo() {
+        for (TipoAmbiente tipo : TipoAmbiente.values()) {
+            Ambiente ambiente = ambienteService.cadastrar(tipo, null);
+
+            assertThat(ambiente.getTipoAmbiente()).isEqualTo(tipo);
+            assertThat(ambiente.getTipo()).isEqualTo(tipo.getNome());
+            assertThat(ambiente.getValorHora()).isEqualTo(tipo.getValorHora());
+            assertThat(ambiente.getNome()).isEqualTo(tipo.getNome() + " " + ambiente.getId());
+        }
+    }
 }

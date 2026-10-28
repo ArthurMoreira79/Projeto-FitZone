@@ -3,7 +3,9 @@ package com.fitzone.api.controller;
 import com.fitzone.api.dto.AmbienteObservacoesRequest;
 import com.fitzone.api.dto.AmbienteRequest;
 import com.fitzone.api.dto.AmbienteResponse;
+import com.fitzone.api.dto.TipoAmbienteResponse;
 import com.fitzone.domain.model.Ambiente;
+import com.fitzone.domain.model.TipoAmbiente;
 import com.fitzone.domain.service.AmbienteService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -58,5 +61,11 @@ public class AmbienteController {
     public ResponseEntity<Void> excluir(@PathVariable Integer id) {
         ambienteService.excluir(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // GET /api/ambientes/tipos -> 200 (opções do cadastro: código, nome, preço e faixa)
+    @GetMapping("/tipos")
+    public ResponseEntity<List<TipoAmbienteResponse>> listarTipos() {
+        return ResponseEntity.ok(Arrays.stream(TipoAmbiente.values()).map(TipoAmbienteResponse::from).toList());
     }
 }
