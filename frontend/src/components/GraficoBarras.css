@@ -1,0 +1,66 @@
+.grafico-barras {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.barra-linha {
+  display: grid;
+  grid-template-columns: minmax(150px, 240px) minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  min-height: 44px;
+}
+
+.barra-nome {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.barra-nome .anilha {
+  width: 8px;
+  height: 28px;
+}
+
+.barra-rotulo,
+.barra-detalhe {
+  display: block;
+}
+
+.barra-detalhe {
+  font-size: 0.8125rem;
+  color: var(--concreto);
+}
+
+.barra-trilho {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* barra fina, ponta arredondada, reta na base (à esquerda, de onde ela cresce) */
+.barra {
+  height: 16px;
+  flex-shrink: 0;
+  background: var(--borracha);
+  border-radius: 0 4px 4px 0;
+}
+
+/* o valor fica logo depois da ponta, em cor de texto (nunca na cor da barra) */
+.barra-valor {
+  font-size: 0.875rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .barra-linha {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+    padding: 6px 0;
+  }
+}

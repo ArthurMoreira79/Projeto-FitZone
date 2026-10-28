@@ -1,0 +1,168 @@
+.grafico-colunas {
+  --altura-plot: 220px;
+  --largura-coluna: 44px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+}
+
+/* marcas do eixo Y alinhadas às linhas de grade (topo, meio, base) */
+.colunas-eixo {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: var(--altura-plot);
+  font-size: 0.75rem;
+  line-height: 1;
+  color: var(--concreto);
+  text-align: right;
+}
+
+.colunas-eixo span {
+  transform: translateY(-50%);
+}
+
+.colunas-eixo span:last-child {
+  transform: translateY(50%);
+}
+
+/* com muitos dias, as colunas rolam de lado em vez de ficarem finas demais */
+.colunas-rolagem {
+  overflow-x: auto;
+  /* espaço para a dica da coluna mais alta não ser cortada pela rolagem */
+  padding-top: 8px;
+  margin-top: -8px;
+}
+
+.colunas-plot {
+  position: relative;
+  height: var(--altura-plot);
+  min-width: max-content;
+}
+
+/* grade recessiva: linha fina e sólida, um passo acima da superfície */
+.colunas-grade {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.colunas-grade span {
+  border-top: 1px solid var(--linha);
+}
+
+/* a linha de base é a única mais forte: é de onde as colunas crescem */
+.colunas-grade span:last-child {
+  border-top-color: var(--concreto);
+}
+
+.colunas-lista,
+.colunas-x {
+  display: flex;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.colunas-lista {
+  position: relative;
+  height: 100%;
+}
+
+.coluna,
+.colunas-x li {
+  flex: 1 0 var(--largura-coluna);
+}
+
+.coluna-alvo {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  height: 100%;
+  border-radius: 4px;
+  cursor: default;
+}
+
+.coluna-alvo:hover,
+.coluna-alvo:focus-visible {
+  background: rgb(34 41 47 / 0.05);
+}
+
+/* barra fina (até 24px), canto arredondado só na ponta, reto na base */
+.coluna-barra {
+  width: min(24px, 70%);
+  background: var(--borracha);
+  border-radius: 4px 4px 0 0;
+}
+
+.coluna-alvo:hover .coluna-barra,
+.coluna-alvo:focus-visible .coluna-barra {
+  background: #3A444C;
+}
+
+.coluna-rotulo {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* dica: o valor vem primeiro e forte; a data, depois */
+.coluna-dica {
+  position: absolute;
+  left: 50%;
+  z-index: 2;
+  display: none;
+  padding: 6px 10px;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  color: var(--branco);
+  background: var(--borracha);
+  border-radius: 4px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.coluna-dica.dica-inicio {
+  left: 0;
+  transform: none;
+}
+
+.coluna-dica.dica-fim {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+.coluna-dica strong,
+.coluna-dica span {
+  display: block;
+}
+
+.coluna-alvo:hover .coluna-dica,
+.coluna-alvo:focus-visible .coluna-dica {
+  display: block;
+}
+
+/* com a dica aberta, o rótulo fixo da maior coluna sai do caminho */
+.coluna-alvo:hover .coluna-rotulo,
+.coluna-alvo:focus-visible .coluna-rotulo {
+  visibility: hidden;
+}
+
+.colunas-x {
+  min-width: max-content;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: var(--concreto);
+}
+
+.colunas-x li {
+  text-align: center;
+}

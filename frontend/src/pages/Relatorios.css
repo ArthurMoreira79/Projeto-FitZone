@@ -1,0 +1,95 @@
+.relatorios {
+  display: grid;
+  gap: 48px;
+  transition: opacity 120ms;
+}
+
+.relatorios[aria-busy="true"] {
+  opacity: 0.5;
+}
+
+/* ---------- indicadores ---------- */
+
+.indicadores {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 16px;
+}
+
+.indicador {
+  padding: 18px 20px;
+  background: var(--branco);
+  border: 1px solid var(--linha);
+  border-radius: 4px;
+}
+
+.indicador-rotulo {
+  font-size: 0.875rem;
+  color: var(--concreto);
+}
+
+/* números grandes com algarismos proporcionais (tabular só em colunas que precisam alinhar) */
+.indicador-valor {
+  margin-top: 4px;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+/* o número que a tela lidera: o mesmo tratamento condensado dos títulos */
+.indicador-principal .indicador-valor {
+  font-size: 3rem;
+  font-weight: 800;
+  font-stretch: 72%;
+}
+
+/* ---------- seções ---------- */
+
+.relatorio h2 {
+  font-size: 1.5rem;
+}
+
+.relatorio-descricao {
+  margin: 4px 0 20px;
+  max-width: 60ch;
+  font-size: 0.875rem;
+  color: var(--concreto);
+}
+
+.ver-tabela {
+  margin-top: 16px;
+}
+
+.ver-tabela summary {
+  width: fit-content;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ver-tabela .tabela {
+  max-width: 420px;
+  margin-top: 8px;
+  background: var(--branco);
+  border: 1px solid var(--linha);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .relatorios {
+    transition: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .indicadores {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .indicador-principal {
+    grid-column: 1 / -1;
+  }
+
+  .indicador-principal .indicador-valor {
+    font-size: 2.5rem;
+  }
+}

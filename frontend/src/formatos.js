@@ -68,3 +68,7 @@ export function somarDias(iso, dias) {
 }
 
 export const ehDataIso = (texto) => /^\d{4}-\d{2}-\d{2}$/.test(texto ?? '')
+
+// para marcas de eixo: sem centavos ("R$ 500")
+const moedaCurta = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
+export const formatarMoedaCurta = (valor) => moedaCurta.format(valor)

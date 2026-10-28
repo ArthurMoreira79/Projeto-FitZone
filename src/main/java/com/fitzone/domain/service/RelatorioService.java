@@ -60,8 +60,9 @@ public class RelatorioService {
                     List<Agendamento> doAmbiente = agendamentosPorAmbiente.getOrDefault(ambiente.getId(), List.of());
                     // mesma regra de duração do valor cobrado: horas completas, mínimo de 1h
                     long horas = doAmbiente.stream().mapToLong(Agendamento::getHorasCobradas).sum();
+                    double valor = doAmbiente.stream().mapToDouble(Agendamento::getValorTotal).sum();
                     return new RelatorioAmbienteDTO(ambiente.getId(), ambiente.getNome(), ambiente.getTipo(),
-                            doAmbiente.size(), horas);
+                            ambiente.getTipoAmbiente().name(), doAmbiente.size(), horas, valor);
                 })
                 .sorted(Comparator.comparing(RelatorioAmbienteDTO::ambienteId))
                 .toList();
