@@ -5,6 +5,8 @@ import GrupoAmbientes from '../components/GrupoAmbientes'
 import MensagemErro from '../components/MensagemErro'
 import Botao from '../components/Botao'
 import ModalNovoAmbiente from '../components/ModalNovoAmbiente'
+import ModalEditarAmbiente from '../components/ModalEditarAmbiente'
+import ModalConfirmacao from '../components/ModalConfirmacao'
 import { useAviso } from '../avisos/AvisoContext'
 import './Ambientes.css'
 
@@ -16,6 +18,10 @@ export default function Ambientes() {
   // mudar a versão faz o useEffect rodar de novo: é assim que a tela recarrega
   const [versao, setVersao] = useState(0)
   const [novoAberto, setNovoAberto] = useState(false)
+  // guardam o ambiente da linha clicada; null = modal fechado
+  const [emEdicao, setEmEdicao] = useState(null)
+  const [paraExcluir, setParaExcluir] = useState(null)
+  const [excluindo, setExcluindo] = useState(false)
   const avisar = useAviso()
 
   useEffect(() => {
@@ -63,6 +69,34 @@ export default function Ambientes() {
     recarregar()
   }
 
+  function aoSalvarObservacoes(atualizado) {
+    setEmEdicao(null)
+    avisar(`Observações salvas: ${atualizado.nome}.`)
+    recarregar()
+  }
+
+  async function confirmarExclusao() {
+    const alvo = paraExcluir
+    setExcluindo(true)
+    try {
+      await ambientesApi.excluir(alvo.id)
+      avisar(`Ambiente excluído: ${alvo.nome}.`)
+      recarregar()
+    } catch (e) {
+      // a mensagem do 409 no back é genérica (vale para qualquer FK); aqui a tela sabe o contexto
+      avisar(
+        e.status === 409
+          ? `Não é possível excluir ${alvo.nome}: existem agendamentos para este ambiente.`
+          : e.message,
+        'erro',
+      )
+    } finally {
+      // fecha o modal junto com o aviso: o aviso nunca fica escondido atrás do fundo escuro
+      setExcluindo(false)
+      setParaExcluir(null)
+    }
+  }
+
   return (
     <>
       <CabecalhoPagina
@@ -82,7 +116,14 @@ export default function Ambientes() {
       {!erro && tipos.length > 0 && (
         <div className="grupos-ambientes">
           {grupos.map(g => (
-            <GrupoAmbientes key={g.tipo.codigo} tipo={g.tipo} salas={g.salas} capacidade={g.capacidade} />
+            <GrupoAmbientes
+              key={g.tipo.codigo}
+              tipo={g.tipo}
+              salas={g.salas}
+              capacidade={g.capacidade}
+              onEditar={setEmEdicao}
+              onExcluir={setParaExcluir}
+            />
           ))}
         </div>
       )}
@@ -92,6 +133,26 @@ export default function Ambientes() {
           grupos={grupos}
           onFechar={() => setNovoAberto(false)}
           onCadastrado={aoCadastrar}
+        />
+      )}
+
+      {emEdicao && (
+        <ModalEditarAmbiente
+          ambiente={emEdicao}
+          onFechar={() => setEmEdicao(null)}
+          onSalvo={aoSalvarObservacoes}
+        />
+      )}
+
+      {paraExcluir && (
+        <ModalConfirmacao
+          aberto
+          titulo={`Excluir ${paraExcluir.nome}?`}
+          mensagem="O ambiente sai da lista de reservas e o id fica livre para um novo cadastro. Ambientes com agendamentos não podem ser excluídos."
+          rotuloConfirmar="Excluir ambiente"
+          onConfirmar={confirmarExclusao}
+          onCancelar={() => setParaExcluir(null)}
+          processando={excluindo}
         />
       )}
     </>

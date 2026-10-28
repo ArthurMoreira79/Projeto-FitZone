@@ -2,10 +2,9 @@ import { useId, useState } from 'react'
 import { ambientesApi } from '../api/ambientes'
 import { formatarMoeda } from '../formatos'
 import Botao from './Botao'
+import CampoObservacoes from './CampoObservacoes'
 import MensagemErro from './MensagemErro'
 import Modal from './Modal'
-
-const LIMITE_OBSERVACOES = 200 // o mesmo @Size(max = 200) do AmbienteRequest
 
 export default function ModalNovoAmbiente({ grupos, onFechar, onCadastrado }) {
   const id = useId()
@@ -75,24 +74,12 @@ export default function ModalNovoAmbiente({ grupos, onFechar, onCadastrado }) {
           )}
         </div>
 
-        <div className="campo">
-          <label htmlFor={`${id}-obs`}>
-            Observações <span className="campo-opcional">(opcional)</span>
-          </label>
-          <textarea
-            id={`${id}-obs`}
-            value={observacoes}
-            onChange={e => setObservacoes(e.target.value)}
-            maxLength={LIMITE_OBSERVACOES}
-            placeholder="Ex.: térreo, climatizada, com espelhos"
-            aria-invalid={Boolean(errosCampos.observacoes)}
-            aria-describedby={`${id}-obs-rodape`}
-          />
-          <div id={`${id}-obs-rodape`} className="campo-rodape">
-            {errosCampos.observacoes && <p className="campo-erro">{errosCampos.observacoes}</p>}
-            <span className="campo-contador numero">{observacoes.length}/{LIMITE_OBSERVACOES}</span>
-          </div>
-        </div>
+        <CampoObservacoes
+          id={`${id}-obs`}
+          valor={observacoes}
+          onChange={setObservacoes}
+          erro={errosCampos.observacoes}
+        />
 
         <div className="modal-acoes">
           <Botao variante="secundario" onClick={onFechar} disabled={enviando}>Cancelar</Botao>

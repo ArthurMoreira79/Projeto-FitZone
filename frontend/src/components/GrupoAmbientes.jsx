@@ -1,7 +1,8 @@
 import { formatarMoeda } from '../formatos'
+import Botao from './Botao'
 import './GrupoAmbientes.css'
 
-export default function GrupoAmbientes({ tipo, salas, capacidade }) {
+export default function GrupoAmbientes({ tipo, salas, capacidade, onEditar, onExcluir }) {
   const tituloId = `grupo-${tipo.codigo}`
 
   return (
@@ -28,14 +29,17 @@ export default function GrupoAmbientes({ tipo, salas, capacidade }) {
               <col className="col-nome" />
               <col className="col-valor" />
               <col />
+              <col className="col-acoes" />
             </colgroup>
-            
+
             <thead>
               <tr>
                 <th scope="col">Id</th>
                 <th scope="col">Nome</th>
                 <th scope="col" className="col-numero">Valor/hora</th>
                 <th scope="col">Observações</th>
+                {/* título invisível: os botões já dizem o que fazem, mas o leitor de tela precisa do nome da coluna */}
+                <th scope="col"><span className="visualmente-oculto">Ações</span></th>
               </tr>
             </thead>
             <tbody>
@@ -46,6 +50,27 @@ export default function GrupoAmbientes({ tipo, salas, capacidade }) {
                   {/* valor da própria sala, não do tipo: é ele que o agendamento cobra */}
                   <td className="col-numero numero">{formatarMoeda(sala.valorHora)}</td>
                   <td>{sala.observacoes || <span className="vazio-tracinho">—</span>}</td>
+                  <td>
+                    <div className="acoes-linha">
+                      {/* aria-label completo: o leitor de tela diz "Editar Sala de Yoga 201", não só "Editar" */}
+                      <Botao
+                        variante="discreto"
+                        tamanho="pequeno"
+                        onClick={() => onEditar(sala)}
+                        aria-label={`Editar ${sala.nome}`}
+                      >
+                        Editar
+                      </Botao>
+                      <Botao
+                        variante="discreto-perigo"
+                        tamanho="pequeno"
+                        onClick={() => onExcluir(sala)}
+                        aria-label={`Excluir ${sala.nome}`}
+                      >
+                        Excluir
+                      </Botao>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>

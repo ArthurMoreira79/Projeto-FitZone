@@ -45,3 +45,27 @@
 .botao-perigo:hover:not(:disabled) {
   background: var(--perigo-hover);
 }
+/* discretos: ações repetidas em cada linha de tabela, sem disputar atenção com o conteúdo */
+.botao-discreto {
+  background: transparent;
+  color: var(--borracha);
+}
+
+.botao-discreto:hover:not(:disabled) {
+  background: #E2E7E5;
+}
+
+.botao-discreto-perigo {
+  background: transparent;
+  color: var(--perigo);
+}
+
+.botao-discreto-perigo:hover:not(:disabled) {
+  background: #F6E3E0;
+}
+
+.botao-pequeno {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 0.875rem;
+}

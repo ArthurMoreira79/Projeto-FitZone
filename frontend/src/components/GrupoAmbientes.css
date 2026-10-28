@@ -45,9 +45,21 @@
 .grupo-ambientes .tabela {
   table-layout: fixed;
   /* abaixo disso a tabela rola dentro da caixa, em vez de espremer as colunas */
-  min-width: 600px;
+  min-width: 720px;
 }
 
 .grupo-ambientes .col-id    { width: 80px; }
 .grupo-ambientes .col-nome  { width: 36%; }
 .grupo-ambientes .col-valor { width: 140px; }
+.grupo-ambientes .col-acoes { width: 170px; }
+
+/* as linhas com botões ficam mais altas: centraliza o texto das outras células com eles */
+.grupo-ambientes .tabela td {
+  vertical-align: middle;
+}
+
+.acoes-linha {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
