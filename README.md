@@ -2,12 +2,20 @@
 
 Projeto desenvolvido a princípio para revisar conceitos da Programação Orientada a Objetos, simulando a gestão de uma academia/estúdio fitness: cadastro de alunos, ambientes reserváveis (sala de musculação, yoga, crossfit, piscina), agendamentos com serviços adicionais (avaliação física, nutricionista, personal trainer, locker) e relatórios de ocupação e faturamento.
 
-O projeto evoluiu em fases — de um sistema de console em Java puro até uma **API REST com Spring Boot, MySQL e Flyway**. Este README documenta o estado atual e o histórico de cada fase.
+O projeto evoluiu em fases — de um sistema de console em Java puro até uma **API REST com Spring Boot, MySQL e Flyway** consumida por um **front-end em React**. Este README documenta o estado atual e o histórico de cada fase.
 
 ---
 
-## 1. Estado atual (Fase 4 concluída — API REST com Spring Boot)
+## 1. Estado atual (Fase 5 concluída — front-end React + API REST)
 
+**Front-end** (`frontend/`)
+- **React 19 + Vite 8 + React Router 7**, em JavaScript, conversando com a API por um cliente HTTP único (`src/api/client.js`) que transforma qualquer `ErroResposta` da API num `ApiError` com status, mensagem e campos inválidos.
+- **Cinco telas**: Painel (o movimento de hoje, com o que está em andamento e os próximos agendamentos), Agendamentos (lista com filtros opcionais de data e ambiente, novo agendamento com horários ocupados e prévia do valor, detalhe com serviços e cancelamento), Alunos (busca por nome, CPF ou e-mail, cadastro e edição com máscaras), Ambientes (agrupados por tipo, cadastro, edição de observações e exclusão) e Relatórios (faturamento por dia, ocupação dos ambientes e serviços vendidos, com gráficos).
+- **Nenhuma regra de cobrança no front**: a prévia do valor vem do endpoint de orçamento e os preços vêm dos endpoints de tipos — a regra de horas cobradas continua existindo só em `Agendamento.getHorasCobradas()`.
+- **Identidade visual**: fonte Archivo (condensada nos títulos e horários) e as cores das anilhas olímpicas identificando cada tipo de ambiente (vermelho = musculação, verde = yoga, amarelo = crossfit, azul = piscina).
+- **Acessibilidade de base**: modais com `<dialog>` nativo (foco preso, Esc), foco visível, erros ligados aos campos (`aria-invalid`, `aria-describedby`), avisos anunciados por leitores de tela, tabela alternativa nos gráficos e layout que funciona no celular.
+
+**Back-end** (API REST)
 - **API REST** com Spring Boot 4 (Java 21): CRUD de alunos e ambientes, agendamentos com serviços adicionais e 4 relatórios, em `/api/*`.
 - **Arquitetura em camadas**: `domain` (modelo, repositórios, services, exceções) separado de `api` (controllers, DTOs, tratamento de erros) — as regras de negócio não sabem que existe HTTP.
 - **Banco versionado com Flyway**: o schema é criado e evoluído por migrations (`src/main/resources/db/migration`); o Hibernate só valida (`ddl-auto=validate`).
@@ -15,17 +23,21 @@ O projeto evoluiu em fases — de um sistema de console em Java puro até uma **
 - **Modelagem OO preservada**: `Ambiente` e `ServicoAdicional` são classes abstratas com herança `SINGLE_TABLE` e polimorfismo real (cada subtipo calcula sua descrição e seu valor).
 - **DTOs (records) na fronteira da API** com Bean Validation — as entidades JPA nunca são expostas no JSON.
 - **Erros padronizados**: um `@RestControllerAdvice` converte cada exceção no status certo (400, 404, 405, 409, 415, 500), sempre no mesmo formato JSON, com a lista de campos inválidos quando é erro de validação.
-- **Testes**: 18 testes de integração (JUnit 5 + `@SpringBootTest`) contra um banco MySQL próprio de testes (`fitzone_test`), mais uma coleção do Postman com os cenários de teste manual (`postman/` e [Roteiro.md](Roteiro.md)).
+- **Testes**: 25 testes de integração (JUnit 5 + `@SpringBootTest`) contra um banco MySQL próprio de testes (`fitzone_test`), mais uma coleção do Postman com os cenários de teste manual (`postman/` e [Roteiro.md](Roteiro.md)).
 - **Credenciais fora do código**: lidas de um arquivo `.env` que não é versionado.
 
 ### Pendências conhecidas
 
-Pontos identificados durante a Fase 4 e deixados conscientemente para depois:
+Pontos identificados durante as Fases 4 e 5 e deixados conscientemente para depois:
 
 - [ ] **Valores em `DOUBLE`**: `valor_hora` e `valor_total` deveriam ser `DECIMAL` (`BigDecimal` no Java) para evitar erro de arredondamento em dinheiro. Exige uma migration nova (V5) e trocar `double` nas entidades, no cálculo e nos relatórios.
 - [ ] **Ids da faixa não são reaproveitados**: o próximo id de ambiente é `MAX + 1` do tipo. Se um ambiente do meio da faixa for excluído, o número não volta a ser usado — com 10 ids por tipo, a faixa pode esgotar antes da hora. Alternativa: procurar o primeiro id livre da faixa.
 - [ ] **Excluir aluno/ambiente com agendamentos** devolve a mensagem genérica "Conflito de integridade" (vinda do banco). Uma checagem prévia no service (`existsByAluno_Id`) com exceção própria daria uma mensagem mais clara.
 - [ ] **Relatórios agregam em memória** (`findAll()` + streams). Suficiente para o volume atual; com muitos dados, o ideal é consultas com `GROUP BY` no banco.
+- [ ] **Relatórios sem filtro de período**: o faturamento por dia mostra só os dias com movimento, igualmente espaçados. Um parâmetro de datas em `/relatorios/faturamento` permitiria "últimos 30 dias" com os dias vazios aparecendo como zero.
+- [ ] **Não dá para remover um serviço** de um agendamento (falta `DELETE /api/agendamentos/{id}/servicos/{servicoId}`); hoje a única saída é cancelar o agendamento.
+- [ ] **Sem autenticação**: o front é um painel administrativo aberto. Login (Spring Security + JWT) fica para quando houver mais de um tipo de usuário.
+- [ ] **Listas carregadas inteiras** (alunos, agendamentos) e filtradas no navegador. Ótimo para o volume de uma academia; com milhares de registros, o caminho é paginação na API.
 
 ---
 
@@ -101,12 +113,28 @@ A migração foi feita **à mão, passo a passo**, a partir do código da Fase 3
 - ✔ 18 testes de integração dos services rodando no banco `fitzone_test` (criado automaticamente), com rollback ao fim de cada teste.
 - ✔ Coleção do Postman versionada em `postman/`, com caminho feliz e casos de erro.
 
-### Fase 5 — Interface gráfica ou Web
+### Fase 5 — Front-end web com React ✔ (concluída)
 
-Duas direções possíveis a partir da Fase 4:
+Escolhida a "Opção B": o Spring Boot continua como API REST e o front-end é um projeto separado, na pasta `frontend/` do mesmo repositório.
 
-- **Opção A — JavaFX**: interface desktop, mantendo tudo em Java. Boa se você quiser focar em Java puro.
-- **Opção B (recomendada, alinhada com seu objetivo de full stack)**: manter o Spring Boot como API REST e construir um front-end separado (React, ou até HTML/CSS/JS simples pra começar). Isso te dá prática real de full stack — exatamente o tipo de projeto que fica bem num portfólio.
+**Ligação front ↔ back**
+- ✔ **CORS** configurado no Spring (`api/config/CorsConfig`), com as origens permitidas no `application.properties` (`fitzone.cors.origens-permitidas`) e o header `Location` exposto ao JavaScript.
+- ✔ URL da API no front via `frontend/.env.development` (`VITE_API_URL`) — só endereço, nunca credencial: tudo que vai para o front é público.
+- ✔ Cliente HTTP central que trata 204 sem corpo, falha de conexão (status 0) e o `ErroResposta` da API; um módulo por recurso em `src/api/`.
+
+**Mudanças no back feitas para o front**
+- ✔ `TipoAmbiente` e `TipoServico` viraram a "ficha técnica" de cada tipo (nome, preço e, nos serviços, a forma de cobrança `FIXO` / `POR_HORA` / `POR_UNIDADE`). Os preços saíram das subclasses; o cálculo continua polimórfico. Endpoints `GET /api/ambientes/tipos` e `GET /api/servicos/tipos`.
+- ✔ Responses com o **código** do enum (`"YOGA"`) ao lado do texto de exibição (`"Sala de Yoga"`): o front decide pelo código, nunca pelo texto.
+- ✔ Listagem de agendamentos com filtros opcionais (`?data=&ambienteId=&alunoId=`), ordenada por data e hora.
+- ✔ **Orçamento** (`GET /api/agendamentos/orcamento`): prévia do valor calculada pelo próprio `Agendamento`, sem gravar nada — a regra de cobrança não foi duplicada no JavaScript.
+- ✔ Relatório de ocupação com código do tipo e valor faturado por ambiente; relatório de serviços agrupado pelo enum (antes mostrava o nome da classe Java, como `LockerAcademia`).
+- ✔ Corrigidos no caminho: mensagens sem espaço ("tipo YOGAatingido"), "Locker (1 unidades)" e o nome da Piscina sem número.
+
+**Front-end**
+- ✔ Layout com navegação no topo, componentes reutilizáveis (`Botao`, `Modal`, `ModalConfirmacao`, `CampoTexto`, `MensagemErro`, avisos via Context) e os hooks `useDados` (busca com recarga e descarte de respostas atrasadas) e `useAgora` (relógio que avança a cada minuto).
+- ✔ As cinco telas descritas no estado atual, com filtros na URL (F5 e links mantêm o que foi escolhido).
+- ✔ Datas tratadas sem `toISOString()`/`new Date("AAAA-MM-DD")`, que convertem para UTC e mostrariam o dia errado no fuso de Brasília.
+- ✔ Gráficos feitos em HTML/CSS: barras de uma cor só (as cores das anilhas reprovaram no teste de daltonismo e ficaram só como marca ao lado do nome), valor no maior dia, dica ao passar o mouse ou focar com Tab e tabela alternativa.
 
 ### Fase 6 — Portfólio
 
@@ -114,11 +142,22 @@ Duas direções possíveis a partir da Fase 4:
 - Organizar o histórico do Git por fase (tags tipo `v1-poo`, `v2-jpa`, `v3-console`, `v4-spring-api`, `v5-web`), mostrando a evolução — isso conta muito mais do que só o código final.
 - Um projeto que nasce simples (CRUD + regras de negócio) e evolui até virar API + front-end é um ótimo case pra mostrar a clientes ou recrutadores que você entende o ciclo completo, não só uma parte isolada.
 
+### Ideias para o futuro (fora do roadmap atual)
+
+Possíveis expansões, ainda sem fase definida:
+
+- **Nova identidade visual**: rever a paleta do sistema e as cores das anilhas que identificam os tipos de ambiente (hoje vermelho, verde, amarelo e azul; o par vermelho/verde não é distinguível para daltônicos, por isso a cor nunca aparece sozinha).
+- **Site institucional** da academia: apresentação, modalidades, ambientes, preços e contato, para o público.
+- **Página do aluno**: o aluno acompanha os próprios agendamentos, monta os treinos e organiza a rotina.
+- **Página do professor**: o professor analisa as avaliações físicas dos alunos e entrega treinos personalizados.
+
+As três páginas novas pedem **autenticação com perfis** (recepção/gestão, aluno, professor) e regras de acesso por perfil na API — provavelmente o primeiro passo de qualquer uma delas.
+
 ---
 
 ## 3. Como rodar
 
-**Pré-requisitos:** JDK 21 e MySQL **8.0.16 ou mais novo** rodando localmente (versões anteriores aceitam as constraints `CHECK` mas não as aplicam). Não é preciso instalar o Maven: o projeto traz o Maven Wrapper (`mvnw`).
+**Pré-requisitos:** JDK 21, MySQL **8.0.16 ou mais novo** rodando localmente (versões anteriores aceitam as constraints `CHECK` mas não as aplicam) e, para o front-end, **Node.js 20 ou mais novo**. Não é preciso instalar o Maven: o projeto traz o Maven Wrapper (`mvnw`).
 
 **1. Criar o banco** (só o banco, vazio — as tabelas são criadas pelo Flyway):
 
@@ -151,7 +190,17 @@ O `.env` está no `.gitignore` e nunca deve ser commitado. Se aparecer `Could no
 
 Os testes usam o banco **`fitzone_test`**, criado automaticamente na primeira execução (profile `test`, em `src/test/resources/application-test.properties`). Cada teste roda numa transação desfeita no final, então o banco de testes fica sempre vazio e **o banco `fitzone` de desenvolvimento nunca é tocado**.
 
-**5. Testar manualmente:** a coleção do Postman está em `postman/` e o checklist dos cenários em [Roteiro.md](Roteiro.md).
+**5. Subir o front-end** (com a API rodando, em outro terminal):
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+O sistema abre em `http://localhost:5173`. O endereço da API está em `frontend/.env.development` (`VITE_API_URL`); se o front rodar em outra origem, ela precisa estar em `fitzone.cors.origens-permitidas`, no `application.properties`, senão o navegador bloqueia as requisições (erro de CORS no Console). Para conferir o código: `npm run lint`.
+
+**6. Testar manualmente:** a coleção do Postman está em `postman/` e o checklist dos cenários em [Roteiro.md](Roteiro.md).
 
 ---
 
@@ -160,8 +209,9 @@ Os testes usam o banco **`fitzone_test`**, criado automaticamente na primeira ex
 | Recurso | Rotas |
 |---|---|
 | Alunos | `POST /api/alunos` · `GET /api/alunos` · `GET /api/alunos/{id}` · `GET /api/alunos/busca?cpf=` · `PUT /api/alunos/{id}` · `DELETE /api/alunos/{id}` |
-| Ambientes | `POST /api/ambientes` · `GET /api/ambientes` · `GET /api/ambientes/{id}` · `PUT /api/ambientes/{id}` (só observações) · `DELETE /api/ambientes/{id}` |
-| Agendamentos | `POST /api/agendamentos` · `GET /api/agendamentos` · `GET /api/agendamentos/{id}` · `POST /api/agendamentos/{id}/servicos` · `DELETE /api/agendamentos/{id}` |
+| Ambientes | `POST /api/ambientes` · `GET /api/ambientes` · `GET /api/ambientes/{id}` · `PUT /api/ambientes/{id}` (só observações) · `DELETE /api/ambientes/{id}` · `GET /api/ambientes/tipos` |
+| Agendamentos | `POST /api/agendamentos` · `GET /api/agendamentos?data=&ambienteId=&alunoId=` (filtros opcionais) · `GET /api/agendamentos/{id}` · `GET /api/agendamentos/orcamento?ambienteId=&horaInicio=&horaFim=` · `POST /api/agendamentos/{id}/servicos` · `DELETE /api/agendamentos/{id}` |
+| Serviços | `GET /api/servicos/tipos` (catálogo: nome, preço e forma de cobrança) |
 | Relatórios | `GET /api/relatorios/alunos/{id}` · `GET /api/relatorios/ambientes` · `GET /api/relatorios/faturamento` · `GET /api/relatorios/servicos` |
 
 Exemplos de corpo:
@@ -217,6 +267,16 @@ Todo erro volta no mesmo formato:
 ```
 Projeto-FitZone/
 ├── .env.example              # chaves de configuração (o .env real não é versionado)
+├── frontend/                 # front-end React + Vite
+│   ├── .env.development      # VITE_API_URL (endereço da API, não é segredo)
+│   └── src/
+│       ├── api/              # cliente HTTP central + um módulo por recurso
+│       ├── avisos/           # Context dos avisos (useAviso)
+│       ├── components/       # Layout, Modal, Botao, campos, gráficos, itens e modais de cada tela
+│       ├── hooks/            # useDados (busca/recarga) e useAgora (relógio)
+│       ├── pages/            # Painel, Agendamentos, Alunos, Ambientes, Relatorios, NaoEncontrada
+│       ├── formatos.js       # moeda, CPF, telefone, datas e horas (sem armadilhas de fuso)
+│       └── index.css         # tokens de cor e fonte, tabelas, campos e anilhas
 ├── postman/                  # coleção do Postman (testes manuais)
 ├── Roteiro.md                # checklist dos testes manuais
 └── src/
@@ -229,6 +289,7 @@ Projeto-FitZone/
     │   │   │   ├── service/      # regras de negócio (@Service, @Transactional)
     │   │   │   └── exception/    # exceções de domínio (unchecked)
     │   │   └── api/
+    │   │       ├── config/           # CorsConfig (origens liberadas para o front)
     │   │       ├── controller/       # @RestController por recurso
     │   │       ├── dto/              # records de request/response e dos relatórios
     │   │       └── exceptionhandler/ # ApiExceptionHandler + ErroResposta

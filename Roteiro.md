@@ -1,6 +1,6 @@
 # Roteiro de Testes Manuais — FitZone (API REST)
 
-Este roteiro cobre todos os endpoints da API e o disparo de cada exceção e status de erro. Use-o como checklist antes de uma apresentação — e também como guia rápido caso alguém pergunte "o que acontece se eu fizer X".
+Este roteiro cobre todos os endpoints da API, o disparo de cada exceção e status de erro e, no Módulo 6, as telas do front-end. Use-o como checklist antes de uma apresentação — e também como guia rápido caso alguém pergunte "o que acontece se eu fizer X".
 
 As requisições estão prontas na coleção do Postman em `postman/` (pastas Alunos, Ambientes, Agendamentos, Relatórios e Erros). Nas tabelas, as rotas omitem o prefixo `http://localhost:8080/api`.
 
@@ -82,8 +82,48 @@ Valores esperados considerando o estado após o TC37 (só o agendamento #1 exist
 | TC38 | Relatório por aluno | `GET /relatorios/alunos/1` | **200**, `quantidadeAgendamentos: 1`, `horasCobradas: 2`, `valorTotal: 310.0` |
 | TC39 | Ocupação por ambiente | `GET /relatorios/ambientes` | **200**, 101 com 1 agendamento e 2h; 201 a 210 com 0 |
 | TC40 | Faturamento | `GET /relatorios/faturamento` | **200**, `total: 310.0`, separado por dia, ambiente e aluno |
-| TC41 | Serviços adicionais | `GET /relatorios/servicos` | **200**, `LockerAcademia` (1, R$ 10,00) e `PersonalTrainer` (1, R$ 100,00) |
+| TC41 | Serviços adicionais | `GET /relatorios/servicos` | **200**, `Personal Trainer` (1, R$ 100,00) e `Locker` (1, R$ 10,00), na ordem do enum |
 | TC42 | **Erro:** endpoint inexistente | `GET /alunoss` | **404** "Endpoint não encontrado" |
+
+No TC39, cada ambiente também traz `codigo` (`"MUSCULACAO"`) e `valorTotal` (101 com R$ 310,00).
+
+---
+
+## Módulo 5 — Endpoints da Fase 5 (usados pelo front-end)
+
+| # | Cenário | Requisição | Resultado esperado |
+|---|---------|------------|--------------------|
+| TC43 | Tipos de ambiente | `GET /ambientes/tipos` | **200**, 4 tipos com `codigo`, `nome`, `valorHora`, `inicioFaixa`, `fimFaixa` |
+| TC44 | Tipos de serviço | `GET /servicos/tipos` | **200**, 4 serviços com `valor` e `cobranca` (`FIXO`, `FIXO`, `POR_HORA`, `POR_UNIDADE`) |
+| TC45 | Agendamentos de um dia e ambiente | `GET /agendamentos?data=2026-12-01&ambienteId=101` | **200**, só o agendamento #1, com `ambienteCodigo: "MUSCULACAO"` |
+| TC46 | Agendamentos de um aluno | `GET /agendamentos?alunoId=1` | **200**, em ordem de data e hora |
+| TC47 | **Erro:** data em outro formato | `GET /agendamentos?data=01/12/2026` | **400** "Parâmetro inválido" |
+| TC48 | Orçamento | `GET /agendamentos/orcamento?ambienteId=101&horaInicio=08:00&horaFim=10:40` | **200**, `horasCobradas: 2`, `valorTotal: 200.0`; nada é gravado (`GET /agendamentos` continua igual) |
+| TC49 | Orçamento abaixo de 1 hora | Mesmo do TC48 com `horaFim=08:40` | **200**, `horasCobradas: 1` |
+| TC50 | **Erro:** orçamento com fim antes do início | Mesmo do TC48 com `horaFim=07:00` | **400** "A hora de fim (...) deve ser posterior à hora de início (...)" |
+| TC51 | Locker com 1 unidade | `POST /agendamentos/1/servicos` · `{"tipo":"LOCKER","quantidade":1}` | **200**, descrição "Locker (1 unidade)", no singular |
+
+---
+
+## Módulo 6 — Front-end
+
+Com a API e o `npm run dev` rodando, em `http://localhost:5173`.
+
+| # | Cenário | Resultado esperado |
+|---|---------|--------------------|
+| TF01 | Abrir o sistema | Painel com os números de hoje, a lista do dia e os próximos agendamentos; sem erros no Console (F12) |
+| TF02 | API desligada | Cada tela mostra "Não foi possível conectar ao servidor..." com **Tentar de novo**; ao religar e clicar, os dados aparecem |
+| TF03 | Endereço inexistente (`/qualquercoisa`) | "Página não encontrada", com o menu no topo |
+| TF04 | Ambientes: cadastrar | Tipo lotado aparece "(sem vagas)" e desativado; o novo ambiente entra no bloco do tipo, com a anilha da cor certa |
+| TF05 | Ambientes: excluir com agendamentos | Aviso vermelho "Não é possível excluir ...: existem agendamentos para este ambiente." |
+| TF06 | Alunos: buscar | "joao" encontra "João"; um pedaço do CPF com pontos também encontra |
+| TF07 | Alunos: CPF duplicado | Mensagem do 409 no topo do formulário; o que foi digitado continua lá |
+| TF08 | Novo agendamento | Mostra os horários já reservados do ambiente no dia, marca os conflitos e desativa o botão; a prévia mostra as horas cobradas (2h40 → 2h) |
+| TF09 | Detalhe: adicionar serviço | A quantidade só aparece para o locker; o total do detalhe e da lista se atualizam |
+| TF10 | Detalhe: cancelar | Confirmação por cima do detalhe; Esc fecha só a confirmação; ao confirmar, o agendamento some da lista |
+| TF11 | Filtros na URL | Agendamentos filtrados por data e ambiente continuam filtrados depois do F5 |
+| TF12 | Relatórios | Totais batem com os agendamentos; dica ao passar o mouse ou focar com Tab numa coluna; "Ver como tabela" |
+| TF13 | Celular (`Ctrl+Shift+M` no DevTools) | Nenhuma tela rola para o lado; tabelas rolam dentro da própria caixa |
 
 ---
 
