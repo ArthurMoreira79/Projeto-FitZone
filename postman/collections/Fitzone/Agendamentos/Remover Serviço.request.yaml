@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{baseUrl}}/agendamentos/1/servicos/1"
+method: DELETE
+order: 8000

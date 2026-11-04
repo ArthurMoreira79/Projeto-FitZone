@@ -3,5 +3,5 @@ url: "{{baseUrl}}/agendamentos/1/servicos"
 method: POST
 body:
   type: json
-  content: '{"tipo":"LOCKER","quantidade":2}'
+  content: '{"tipo":"LOCKER","quantidade":1}'
 order: 3000

@@ -3,5 +3,5 @@ url: "{{baseUrl}}/agendamentos"
 method: POST
 body:
   type: json
-  content: '{"alunoId":1,"ambienteId":101,"data":"2026-12-01","horaInicio":"08:00","horaFim":"10:40"}'
+  content: '{"alunoId":1,"ambienteId":101,"data":"2026-12-05","horaInicio":"11:00","horaFim":"14:00"}'
 order: 1000
