@@ -385,7 +385,7 @@ Trocar a serialização em `.dat` por um banco de verdade:
 
 ### Fase 4 — API REST com Spring Boot ✔ (concluída)
 
-A migração foi feita **à mão, passo a passo**, a partir do código da Fase 3. Uma primeira versão gerada com ajuda de IA serviu só de referência e foi descartada; a versão atual foi reescrita do zero para fins de aprendizado e aproveitou para revisar várias decisões.
+A migração foi feita **à mão, passo a passo**, a partir do código da Fase 3, e aproveitou para revisar várias decisões.
 
 **Estrutura e infraestrutura**
 - ✔ Projeto gerado pelo Spring Initializr (Spring Boot 4, Java 21, Maven Wrapper) e código movido para o pacote base `com.fitzone`, organizado em `domain` e `api`.
