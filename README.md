@@ -10,7 +10,7 @@
 
 Sistema web para a recepção de uma academia: cadastro de alunos, reserva de ambientes (musculação, yoga, crossfit e piscina), serviços adicionais vendidos junto com a reserva (avaliação física, nutricionista, personal trainer e locker) e relatórios de ocupação e faturamento.
 
-É uma **API REST em Spring Boot** com MySQL e um **front-end em React** que consome essa API. O projeto começou como um exercício de Orientação a Objetos em Java puro, rodando no console, e evoluiu em cinco fases até chegar aqui. Cada fase tem uma tag no Git, então dá para ver o código em qualquer etapa (veja [Evolução do projeto](#evolução-do-projeto)).
+É uma **API REST em Spring Boot** com MySQL e um **front-end em React** que consome essa API. O projeto começou como um exercício de Orientação a Objetos em Java puro, rodando no console, e evoluiu em seis fases até chegar aqui. Cada fase tem uma tag no Git, então dá para ver o código em qualquer etapa (veja [Evolução do projeto](#evolução-do-projeto)).
 
 ---
 
@@ -343,7 +343,7 @@ O FitZone foi construído em fases, cada uma sobre a anterior já estável. Cada
 | 3 — Console melhorado | [`v3-console`](https://github.com/ArthurMoreira79/Projeto-FitZone/tree/v3-console) | Cores ANSI, nova tentativa em vez de cancelar a operação, tabelas alinhadas |
 | 4 — API REST | [`v4-spring-api`](https://github.com/ArthurMoreira79/Projeto-FitZone/tree/v4-spring-api) | Migração para Spring Boot, escrita à mão: Flyway, services, DTOs, tratamento de erros e testes de integração; o console foi removido |
 | 5 — Front-end web | [`v5-web`](https://github.com/ArthurMoreira79/Projeto-FitZone/tree/v5-web) | Front-end React consumindo a API; endpoints de tipos e orçamento criados para o front |
-| 6 — Portfólio | — | Este README, diagramas, tags por fase e acabamentos (em andamento) |
+| 6 — Portfólio | [`v6-portfolio`](https://github.com/ArthurMoreira79/Projeto-FitZone/tree/v6-portfolio) | Este README, diagramas e prints; dinheiro em `BigDecimal`, remoção de serviço, mensagens de exclusão mais claras e CI no GitHub Actions |
 
 <details>
 <summary><strong>Histórico detalhado de cada fase</strong> (o que foi feito, decisões e bugs encontrados)</summary>
@@ -439,9 +439,9 @@ Escolhida a "Opção B": o Spring Boot continua como API REST e o front-end é u
 - ✔ Datas tratadas sem `toISOString()`/`new Date("AAAA-MM-DD")`, que convertem para UTC e mostrariam o dia errado no fuso de Brasília.
 - ✔ Gráficos feitos em HTML/CSS: barras de uma cor só (as cores das anilhas reprovaram no teste de daltonismo e ficaram só como marca ao lado do nome), valor no maior dia, dica ao passar o mouse ou focar com Tab e tabela alternativa.
 
-### Fase 6 — Portfólio (em andamento)
+### Fase 6 — Portfólio ✔ (concluída)
 
-- ✔ Histórico do Git organizado com uma tag por fase (`v1-poo`, `v2-jpa`, `v3-console`, `v4-spring-api`, `v5-web`).
+- ✔ Histórico do Git organizado com uma tag por fase (`v1-poo` a `v6-portfolio`).
 - ✔ README reescrito para quem chega no repositório pela primeira vez: o que o sistema faz, destaques técnicos, diagrama de arquitetura e de classes (Mermaid); o histórico das fases ficou nesta seção recolhida.
 - ✔ Prints das telas em `docs/img/`.
 - ✔ Dinheiro em `DECIMAL(10,2)` / `BigDecimal` (migration V5): `valor_hora` e `valor_total` eram `DOUBLE`.
