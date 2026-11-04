@@ -1,5 +1,7 @@
 package com.fitzone.domain.model;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
 import jakarta.persistence.Entity;
@@ -62,7 +64,7 @@ public abstract class ServicoAdicional {
      * @return o valor total a ser cobrado por esse serviço, já considerando
      *         quantidade ou duração quando aplicável (ex: locker por unidade, personal por hora do agendamento)
      */
-    public abstract double getValorTotal();
+    public abstract BigDecimal getValorTotal();
 
         @Override
     public boolean equals(Object o) {

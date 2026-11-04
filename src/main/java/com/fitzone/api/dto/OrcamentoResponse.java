@@ -1,5 +1,7 @@
 package com.fitzone.api.dto;
 
+import java.math.BigDecimal;
+
 import com.fitzone.domain.model.Agendamento;
 
 // Prévia de uma reserva: o mesmo cálculo do agendamento real, sem gravar nada
@@ -7,8 +9,8 @@ public record OrcamentoResponse(
         Integer ambienteId,
         String ambienteNome,
         long horasCobradas,
-        double valorHora,
-        double valorTotal
+        BigDecimal valorHora,
+        BigDecimal valorTotal
 ) {
     public static OrcamentoResponse from(Agendamento previa) {
         return new OrcamentoResponse(previa.getAmbiente().getId(), previa.getAmbiente().getNome(),

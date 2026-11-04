@@ -73,6 +73,13 @@ public class AgendamentoController {
         return ResponseEntity.ok(AgendamentoResponse.from(agendamentoService.adicionarServico(id, request.toEntity())));
     }
 
+    // DELETE /api/agendamentos/{id}/servicos/{servicoId} -> 200 com o agendamento atualizado (novo total),
+    // como no POST de serviços: quem foi alterado é o agendamento, e a tela precisa do total novo
+    @DeleteMapping("/{id}/servicos/{servicoId}")
+    public ResponseEntity<AgendamentoResponse> removerServico(@PathVariable Integer id, @PathVariable Long servicoId) {
+        return ResponseEntity.ok(AgendamentoResponse.from(agendamentoService.removerServico(id, servicoId)));
+    }
+
     // DELETE /api/agendamentos/{id} -> 204 (cancela; os serviços vão junto)
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> cancelar(@PathVariable Integer id) {

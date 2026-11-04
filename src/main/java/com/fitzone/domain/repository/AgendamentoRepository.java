@@ -44,5 +44,9 @@ public interface AgendamentoRepository extends JpaRepository <Agendamento, Integ
 
     //Relatório por aluno: filtra no banco em vez de findAll() + filtro em memória.
     //"Aluno_ID" navega do atributo aluno para o id dele
-    List<Agendamento> findByAluno_IdOrderByDataAgendamentoAscHoraInicioAsc(Integer alunoId);                                 
+    List<Agendamento> findByAluno_IdOrderByDataAgendamentoAscHoraInicioAsc(Integer alunoId);
+
+    // Usados antes de excluir aluno/ambiente: SELECT COUNT(*) no banco, sem carregar os agendamentos
+    long countByAluno_Id(Integer alunoId);
+    long countByAmbiente_Id(Integer ambienteId);
 }

@@ -1,0 +1,70 @@
+# Integração contínua: a cada push na main e a cada pull request, o GitHub sobe uma máquina
+# Linux limpa, roda os testes da API contra um MySQL de verdade e confere o front-end.
+# Se algo quebrar, o commit fica marcado com um X vermelho (e o selo no README fica vermelho).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  api:
+    name: API (testes de integração)
+    runs-on: ubuntu-latest
+
+    # MySQL descartável, criado só para esta execução e destruído no fim.
+    # A senha é fixa e pública de propósito: o banco não guarda nada e não é acessível de fora.
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        # só começa os testes quando o MySQL estiver aceitando conexões
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    # no lugar do .env (que não vai para o Git): o Spring lê as variáveis de ambiente
+    env:
+      DB_USERNAME: root
+      DB_PASSWORD: root
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven # reaproveita as dependências baixadas entre execuções
+
+      # o profile "test" cria o banco fitzone_test e o Flyway aplica as migrations
+      - name: Rodar os testes
+        run: ./mvnw -B test
+
+  front:
+    name: Front-end (lint e build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # npm ci instala exatamente o que está no package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      # o build pega erros de import e de sintaxe que o lint não vê
+      - run: npm run build

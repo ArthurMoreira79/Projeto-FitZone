@@ -30,7 +30,8 @@ public class ApiExceptionHandler {
     @ExceptionHandler ({
         AlunoNaoEncontradoException.class,
         AmbienteNaoEncontradoException.class,
-        AgendamentoNaoEncontradoException.class
+        AgendamentoNaoEncontradoException.class,
+        ServicoNaoEncontradoException.class
     })
     public ResponseEntity<ErroResposta> naoEncontrado(RuntimeException ex, HttpServletRequest req) {
         return responder(HttpStatus.NOT_FOUND, "Recurso não encontrado", ex.getMessage(), req, null);
@@ -48,7 +49,8 @@ public class ApiExceptionHandler {
         AlunoJaCadastradoException.class,
         AmbienteJaCadastradoException.class,
         AmbienteIndisponivelException.class,
-        LimiteAmbienteExcedidoException.class
+        LimiteAmbienteExcedidoException.class,
+        RegistroEmUsoException.class
     })
     public ResponseEntity<ErroResposta> conflito(RuntimeException ex, HttpServletRequest req) {
         return responder(HttpStatus.CONFLICT, "Conflito", ex.getMessage(), req, null);

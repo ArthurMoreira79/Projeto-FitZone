@@ -48,6 +48,18 @@
   white-space: nowrap;
 }
 
+/* linha de serviço: nome + botão "Remover"; o botão é mais alto que o texto, então centraliza */
+.composicao-servico {
+  align-items: center;
+}
+
+.composicao-nome {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
 .composicao-total {
   font-weight: 800;
   border-bottom: 0;

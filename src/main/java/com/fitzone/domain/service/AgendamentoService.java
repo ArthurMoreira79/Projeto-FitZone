@@ -4,6 +4,7 @@ import com.fitzone.domain.exception.AgendamentoNaoEncontradoException;
 import com.fitzone.domain.exception.AmbienteIndisponivelException;
 import com.fitzone.domain.exception.HorarioInvalidoException;
 import com.fitzone.domain.exception.ServicoInvalidoException;
+import com.fitzone.domain.exception.ServicoNaoEncontradoException;
 import com.fitzone.domain.model.Agendamento;
 import com.fitzone.domain.model.Aluno;
 import com.fitzone.domain.model.Ambiente;
@@ -104,6 +105,21 @@ public class AgendamentoService {
         // vincula o serviço e recalcula o total; o cascade = ALL do @OneToMany
         // grava o serviço novo e o dirty checking atualiza o valor_total no commit
         agendamento.adicionarServico(servico);
+        return agendamento;
+    }
+
+    /**
+     * Remove um serviço adicional e devolve o agendamento com o total recalculado.
+     * O servicoId precisa ser deste agendamento: buscar só dentro da lista dele impede
+     * apagar, por esta URL, o serviço de outra reserva.
+     */
+    @Transactional
+    public Agendamento removerServico(Integer agendamentoId, Long servicoId) {
+        Agendamento agendamento = buscarPorId(agendamentoId);
+        if (!agendamento.removerServico(servicoId)) {
+            throw new ServicoNaoEncontradoException("Serviço de id " + servicoId
+                    + " não encontrado no agendamento " + agendamentoId + ".");
+        }
         return agendamento;
     }
 

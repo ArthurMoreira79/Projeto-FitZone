@@ -1,5 +1,7 @@
 package com.fitzone.domain.model;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
@@ -18,13 +20,13 @@ public class PersonalTrainer extends ServicoAdicional{
     public TipoServico getTipoServico() { return TipoServico.PERSONAL_TRAINER; }
 
     @Override
-    public double getValorTotal() {
+    public BigDecimal getValorTotal() {
         if(getAgendamento() == null) {
             throw new IllegalStateException
             ("Personal Trainer precisa estar vinculado a um agendamento para calcular o valor.");
         }
         // as horas vêm do agendamento: a regra de duração continua só em getHorasCobradas()
-        return getTipoServico().getValor() * getAgendamento().getHorasCobradas();
+        return getTipoServico().getValor().multiply(BigDecimal.valueOf(getAgendamento().getHorasCobradas()));
     }
 
 }

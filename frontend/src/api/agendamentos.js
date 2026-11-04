@@ -22,5 +22,8 @@ export const agendamentosApi = {
   // servico = { tipo, quantidade } — quantidade só para LOCKER
   adicionarServico: (id, servico) =>
     request(`/agendamentos/${id}/servicos`, { method: 'POST', body: servico }),
+  // devolve o agendamento com o total recalculado, como o adicionarServico
+  removerServico: (id, servicoId) =>
+    request(`/agendamentos/${id}/servicos/${servicoId}`, { method: 'DELETE' }),
   cancelar: (id) => request(`/agendamentos/${id}`, { method: 'DELETE' }),
 }

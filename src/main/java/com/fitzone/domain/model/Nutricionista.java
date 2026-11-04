@@ -1,5 +1,7 @@
 package com.fitzone.domain.model;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
@@ -17,5 +19,5 @@ public class Nutricionista extends ServicoAdicional{
     public TipoServico getTipoServico() { return TipoServico.NUTRICIONISTA; }
 
     @Override
-    public double getValorTotal() { return getTipoServico().getValor(); }
+    public BigDecimal getValorTotal() { return getTipoServico().getValor(); }
 }

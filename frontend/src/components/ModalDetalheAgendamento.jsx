@@ -29,6 +29,10 @@ export default function ModalDetalheAgendamento({ agendamento, onFechar, onAlter
   const [adicionado, setAdicionado] = useState(null)
   const [adicionando, setAdicionando] = useState(false)
 
+  // id do serviço sendo removido (desabilita os botões) e o resultado, mostrado logo abaixo do valor
+  const [removendoId, setRemovendoId] = useState(null)
+  const [resultadoRemocao, setResultadoRemocao] = useState(null)
+
   const [confirmandoCancelamento, setConfirmandoCancelamento] = useState(false)
   const [cancelando, setCancelando] = useState(false)
   const [erroCancelamento, setErroCancelamento] = useState(null)
@@ -45,6 +49,7 @@ export default function ModalDetalheAgendamento({ agendamento, onFechar, onAlter
   async function adicionar(evento) {
     evento.preventDefault()
     setAdicionado(null)
+    setResultadoRemocao(null)
 
     if (!tipoEscolhido) {
       setErroServico('Escolha o serviço.')
@@ -77,6 +82,24 @@ export default function ModalDetalheAgendamento({ agendamento, onFechar, onAlter
     }
   }
 
+  // sem confirmação: remover um serviço é barato de desfazer (é só adicionar de novo)
+  async function remover(servico) {
+    setRemovendoId(servico.id)
+    setResultadoRemocao(null)
+    setAdicionado(null)
+    try {
+      setAg(await agendamentosApi.removerServico(ag.id, servico.id))
+      setResultadoRemocao({ texto: `Serviço removido: ${servico.descricao}.` })
+      onAlterado()
+    } catch (erro) {
+      setResultadoRemocao({ texto: erro.message, erro: true })
+    } finally {
+      setRemovendoId(null)
+    }
+  }
+
+  const ocupado = adicionando || cancelando || removendoId !== null
+
   async function cancelar() {
     setCancelando(true)
     try {
@@ -93,7 +116,7 @@ export default function ModalDetalheAgendamento({ agendamento, onFechar, onAlter
     <>
       <Modal
         onFechar={onFechar}
-        bloqueado={adicionando || cancelando}
+        bloqueado={ocupado}
         tituloId={`${id}-titulo`}
         className="modal-largo detalhe-agendamento"
       >
@@ -122,8 +145,20 @@ export default function ModalDetalheAgendamento({ agendamento, onFechar, onAlter
               <span>{formatarMoeda(valorAmbiente)}</span>
             </li>
             {ag.servicos.map(s => (
-              <li key={s.id}>
-                <span>{s.descricao}</span>
+              <li key={s.id} className="composicao-servico">
+                {/* botão junto do nome, não do valor: a coluna de valores fica alinhada com o Total */}
+                <span className="composicao-nome">
+                  {s.descricao}
+                  <Botao
+                    variante="discreto-perigo"
+                    tamanho="pequeno"
+                    onClick={() => remover(s)}
+                    disabled={ocupado}
+                    aria-label={`Remover ${s.descricao}`}
+                  >
+                    {removendoId === s.id ? 'Removendo…' : 'Remover'}
+                  </Botao>
+                </span>
                 <span>{formatarMoeda(s.valorTotal)}</span>
               </li>
             ))}
@@ -132,6 +167,11 @@ export default function ModalDetalheAgendamento({ agendamento, onFechar, onAlter
               <span>{formatarMoeda(ag.valorTotal)}</span>
             </li>
           </ul>
+          <div role="status" className="servico-status">
+            {resultadoRemocao && (
+              <p className={resultadoRemocao.erro ? 'campo-erro' : 'servico-adicionado'}>{resultadoRemocao.texto}</p>
+            )}
+          </div>
         </section>
 
         <section aria-labelledby={`${id}-servico`} className="detalhe-servico">
@@ -178,7 +218,7 @@ export default function ModalDetalheAgendamento({ agendamento, onFechar, onAlter
                 </div>
               )}
 
-              <Botao type="submit" variante="secundario" disabled={adicionando}>
+              <Botao type="submit" variante="secundario" disabled={ocupado}>
                 {adicionando ? 'Adicionando…' : 'Adicionar serviço'}
               </Botao>
             </form>
@@ -195,11 +235,11 @@ export default function ModalDetalheAgendamento({ agendamento, onFechar, onAlter
           <Botao
             variante="discreto-perigo"
             onClick={() => setConfirmandoCancelamento(true)}
-            disabled={adicionando || cancelando}
+            disabled={ocupado}
           >
             Cancelar agendamento
           </Botao>
-          <Botao variante="secundario" onClick={onFechar} disabled={adicionando || cancelando}>
+          <Botao variante="secundario" onClick={onFechar} disabled={ocupado}>
             Fechar
           </Botao>
         </div>

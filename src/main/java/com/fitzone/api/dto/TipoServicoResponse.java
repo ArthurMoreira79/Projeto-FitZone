@@ -1,11 +1,13 @@
 package com.fitzone.api.dto;
 
+import java.math.BigDecimal;
+
 import com.fitzone.domain.model.TipoServico;
 
 public record TipoServicoResponse(
         String codigo,
         String nome,
-        double valor,
+        BigDecimal valor,
         // FIXO, POR_HORA ou POR_UNIDADE: o front usa para explicar o preço e para saber quando pedir quantidade
         String cobranca
 ) {

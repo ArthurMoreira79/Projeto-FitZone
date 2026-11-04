@@ -1,13 +1,16 @@
 package com.fitzone.domain.service;
 
+import java.math.BigDecimal;
+
 import com.fitzone.domain.exception.AmbienteIndisponivelException;
 import com.fitzone.domain.exception.HorarioInvalidoException;
+import com.fitzone.domain.exception.RegistroEmUsoException;
+import com.fitzone.domain.exception.ServicoNaoEncontradoException;
 import com.fitzone.domain.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import jakarta.persistence.EntityManager;
@@ -53,7 +56,7 @@ class AgendamentoServiceTest {
         Agendamento ag = agendar("08:00", "10:40"); // 2h40 -> 2h
 
         assertThat(ag.getHorasCobradas()).isEqualTo(2);
-        assertThat(ag.getValorTotal()).isEqualTo(200.0);
+        assertThat(ag.getValorTotal()).isEqualByComparingTo("200");
     }
 
     @Test
@@ -61,7 +64,7 @@ class AgendamentoServiceTest {
         Agendamento ag = agendar("08:00", "08:40"); // 40min -> 1h
 
         assertThat(ag.getHorasCobradas()).isEqualTo(1);
-        assertThat(ag.getValorTotal()).isEqualTo(100.0);
+        assertThat(ag.getValorTotal()).isEqualByComparingTo("100");
     }
 
     @Test
@@ -71,7 +74,7 @@ class AgendamentoServiceTest {
         Agendamento comPersonal = agendamentoService.adicionarServico(ag.getId(), new PersonalTrainer());
 
         // 2h x R$100 (sala) + 2h x R$50 (personal)
-        assertThat(comPersonal.getValorTotal()).isEqualTo(300.0);
+        assertThat(comPersonal.getValorTotal()).isEqualByComparingTo("300");
     }
 
     @Test
@@ -81,7 +84,7 @@ class AgendamentoServiceTest {
         Agendamento comLocker = agendamentoService.adicionarServico(ag.getId(), new LockerAcademia(3));
 
         // 1h x R$100 + 3 x R$5
-        assertThat(comLocker.getValorTotal()).isEqualTo(115.0);
+        assertThat(comLocker.getValorTotal()).isEqualByComparingTo("115");
     }
 
     @Test
@@ -97,16 +100,47 @@ class AgendamentoServiceTest {
 
             // cada subclasse tem que estar ligada ao seu próprio enum (pega copia-e-cola errado)
             assertThat(tipo.name()).isEqualTo(servico.getClass().getAnnotation(jakarta.persistence.DiscriminatorValue.class).value());
-            double esperado = switch (tipo.getCobranca()) {
+            BigDecimal esperado = switch (tipo.getCobranca()) {
                 case FIXO -> tipo.getValor();
-                case POR_HORA -> tipo.getValor() * 2;
-                case POR_UNIDADE -> tipo.getValor() * 3;
+                case POR_HORA -> tipo.getValor().multiply(BigDecimal.valueOf(2));
+                case POR_UNIDADE -> tipo.getValor().multiply(BigDecimal.valueOf(3));
             };
-            assertThat(servico.getValorTotal()).isEqualTo(esperado);
+            assertThat(servico.getValorTotal()).isEqualByComparingTo(esperado);
         }
 
         assertThat(servicos[3].getDescricao()).isEqualTo("Locker (3 unidades)");
         assertThat(new LockerAcademia(1).getDescricao()).isEqualTo("Locker (1 unidade)");
+    }
+
+    @Test
+    void removerServicoRecalculaOTotal() {
+        Agendamento ag = agendar("08:00", "10:00");                                   // 2h x R$100 = 200
+        agendamentoService.adicionarServico(ag.getId(), new PersonalTrainer());        // + 2h x R$50
+        agendamentoService.adicionarServico(ag.getId(), new LockerAcademia(2));        // + 2 x R$5
+        entityManager.flush(); // o INSERT dos serviços gera os ids (IDENTITY)
+
+        Long idPersonal = ag.getServicosAdicionais().stream()
+                .filter(s -> s instanceof PersonalTrainer).findFirst().orElseThrow().getId();
+
+        Agendamento atualizado = agendamentoService.removerServico(ag.getId(), idPersonal);
+
+        assertThat(atualizado.getValorTotal()).isEqualByComparingTo("210");
+        assertThat(atualizado.getServicosAdicionais())
+                .extracting(ServicoAdicional::getTipoServico)
+                .containsExactly(TipoServico.LOCKER);
+    }
+
+    @Test
+    void naoRemoveServicoDeOutroAgendamento() {
+        Agendamento comServico = agendar("08:00", "09:00");
+        Agendamento outro = agendar("09:00", "10:00");
+        agendamentoService.adicionarServico(comServico.getId(), new Nutricionista());
+        entityManager.flush();
+        Long idServico = comServico.getServicosAdicionais().get(0).getId();
+
+        assertThatThrownBy(() -> agendamentoService.removerServico(outro.getId(), idServico))
+                .isInstanceOf(ServicoNaoEncontradoException.class);
+        assertThat(comServico.getServicosAdicionais()).hasSize(1); // continua lá
     }
 
     // ---------- conflito de horário ----------
@@ -158,7 +192,7 @@ class AgendamentoServiceTest {
         Agendamento previa = agendamentoService.orcar(sala.getId(), LocalTime.parse("08:00"), LocalTime.parse("10:40"));
 
         assertThat(previa.getHorasCobradas()).isEqualTo(2);  // 2h40 -> 2h
-        assertThat(previa.getValorTotal()).isEqualTo(200.0);
+        assertThat(previa.getValorTotal()).isEqualByComparingTo("200");
         assertThat(previa.getId()).isNull();                  // nunca passou pelo save
         assertThat(agendamentoService.listar(null, sala.getId(), null)).isEmpty();
     }
@@ -177,11 +211,25 @@ class AgendamentoServiceTest {
 
         // Simula uma requisição nova (como no Postman): grava no banco o que está pendente
         // e esvazia a memória do Hibernate, para o agendamento não estar mais "gerenciado".
-        // Assim quem recusa a exclusão é o banco (ON DELETE RESTRICT), não o Hibernate.
         entityManager.flush();
         entityManager.clear();
 
+        // o service conta os agendamentos antes e recusa com mensagem clara
+        // (o ON DELETE RESTRICT do banco fica como última linha de defesa)
         assertThatThrownBy(() -> alunoService.excluir(aluno.getId()))
-                .isInstanceOf(DataIntegrityViolationException.class);
+                .isInstanceOf(RegistroEmUsoException.class)
+                .hasMessage("O aluno Ana tem 1 agendamento e não pode ser excluído. Cancele os agendamentos antes.");
+    }
+
+    @Test
+    void naoDeveExcluirAmbienteComAgendamentos() {
+        agendar("08:00", "09:00");
+        agendar("09:00", "10:00");
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThatThrownBy(() -> ambienteService.excluir(sala.getId()))
+                .isInstanceOf(RegistroEmUsoException.class)
+                .hasMessageContaining("Sala de Musculação 101 tem 2 agendamentos");
     }
 }

@@ -1,5 +1,7 @@
 package com.fitzone.domain.model;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -45,8 +47,8 @@ public class Agendamento {
     @Column(name = "hora_fim", nullable = false)
     private LocalTime horaFim;
 
-    @Column(name = "valor_total", nullable = false)
-    private double valorTotal;
+    @Column(name = "valor_total", nullable = false, precision = 10, scale = 2)
+    private BigDecimal valorTotal;
 
     @OneToMany(mappedBy = "agendamento", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ServicoAdicional> servicosAdicionais;
@@ -78,9 +80,11 @@ public class Agendamento {
     /**
      * Valor total = horas cobradas × valor/hora do ambiente + soma dos serviços adicionais.
      */
-    private double calculaValorTotal(){
-        double totalServicos = servicosAdicionais.stream().mapToDouble(ServicoAdicional::getValorTotal).sum();
-        return (getHorasCobradas() * ambiente.getValorHora()) + totalServicos;
+    private BigDecimal calculaValorTotal(){
+        BigDecimal totalServicos = servicosAdicionais.stream()
+                .map(ServicoAdicional::getValorTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return BigDecimal.valueOf(getHorasCobradas()).multiply(ambiente.getValorHora()).add(totalServicos);
     }
 
     /**
@@ -94,6 +98,19 @@ public class Agendamento {
         servico.setAgendamento(this);
         this.servicosAdicionais.add(servico);
         recalcularValorTotal();
+    }
+
+    /**
+     * Tira o serviço da lista e recalcula o total. O orphanRemoval do @OneToMany
+     * faz o DELETE do serviço no commit.
+     * @return false se o serviço não pertence a este agendamento
+     */
+    public boolean removerServico(Long servicoId) {
+        boolean removido = this.servicosAdicionais.removeIf(s -> Objects.equals(s.getId(), servicoId));
+        if (removido) {
+            recalcularValorTotal();
+        }
+        return removido;
     }
 
     /** Getters e Setters */
@@ -111,8 +128,8 @@ public class Agendamento {
     public LocalTime getHoraFim() { return horaFim; }
     public List<ServicoAdicional> getServicosAdicionais() { return servicosAdicionais; }
 
-    public double getValorTotal() { return valorTotal; }
-    public void setValorTotal(double valorTotal) { this.valorTotal = valorTotal; }
+    public BigDecimal getValorTotal() { return valorTotal; }
+    public void setValorTotal(BigDecimal valorTotal) { this.valorTotal = valorTotal; }
 
     @Override
     public String toString(){

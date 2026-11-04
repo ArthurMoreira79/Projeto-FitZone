@@ -1,5 +1,7 @@
 package com.fitzone.api.dto;
 
+import java.math.BigDecimal;
+
 import java.util.List;
 
 public record RelatorioAlunoDTO(
@@ -7,6 +9,6 @@ public record RelatorioAlunoDTO(
         String nome,
         int quantidadeAgendamentos,
         long horasCobradas,
-        double valorTotal,
+        BigDecimal valorTotal,
         List<AgendamentoResponse> agendamentos
 ) { }

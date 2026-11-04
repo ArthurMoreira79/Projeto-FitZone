@@ -52,13 +52,8 @@ export default function Ambientes() {
       avisar(`Ambiente excluído: ${alvo.nome}.`)
       recarregar()
     } catch (e) {
-      // a mensagem do 409 no back é genérica (vale para qualquer FK); aqui a tela sabe o contexto
-      avisar(
-        e.status === 409
-          ? `Não é possível excluir ${alvo.nome}: existem agendamentos para este ambiente.`
-          : e.message,
-        'erro',
-      )
+      // 409 com agendamentos: a própria API explica ("... tem 2 agendamentos e não pode ser excluído")
+      avisar(e.message, 'erro')
     } finally {
       // fecha o modal junto com o aviso: o aviso nunca fica escondido atrás do fundo escuro
       setExcluindo(false)

@@ -1,11 +1,13 @@
 package com.fitzone.api.dto;
 
+import java.math.BigDecimal;
+
 import com.fitzone.domain.model.TipoAmbiente;
 
 public record TipoAmbienteResponse(
         String codigo,
         String nome,
-        double valorHora,
+        BigDecimal valorHora,
         int inicioFaixa,
         int fimFaixa
 ) {

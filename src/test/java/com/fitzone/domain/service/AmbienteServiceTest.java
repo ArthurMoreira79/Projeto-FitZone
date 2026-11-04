@@ -26,7 +26,7 @@ class AmbienteServiceTest {
 
         assertThat(sala.getId()).isEqualTo(101);
         assertThat(sala.getNome()).isEqualTo("Sala de Musculação 101");
-        assertThat(sala.getValorHora()).isEqualTo(100.0);
+        assertThat(sala.getValorHora()).isEqualByComparingTo("100");
     }
 
     @Test
@@ -36,6 +36,20 @@ class AmbienteServiceTest {
 
         assertThat(primeira.getId()).isEqualTo(201);
         assertThat(segunda.getId()).isEqualTo(202);
+    }
+
+    @Test
+    void idDeAmbienteExcluidoVoltaASerUsado() {
+        ambienteService.cadastrar(TipoAmbiente.YOGA, null);                    // 201
+        Ambiente meio = ambienteService.cadastrar(TipoAmbiente.YOGA, null);    // 202
+        ambienteService.cadastrar(TipoAmbiente.YOGA, null);                    // 203
+
+        ambienteService.excluir(meio.getId());
+        Ambiente nova = ambienteService.cadastrar(TipoAmbiente.YOGA, null);
+
+        // o buraco no meio da faixa é preenchido, em vez de pular para 204
+        assertThat(nova.getId()).isEqualTo(202);
+        assertThat(nova.getNome()).isEqualTo("Sala de Yoga 202");
     }
 
     @Test
@@ -66,7 +80,7 @@ class AmbienteServiceTest {
 
             assertThat(ambiente.getTipoAmbiente()).isEqualTo(tipo);
             assertThat(ambiente.getTipo()).isEqualTo(tipo.getNome());
-            assertThat(ambiente.getValorHora()).isEqualTo(tipo.getValorHora());
+            assertThat(ambiente.getValorHora()).isEqualByComparingTo(tipo.getValorHora());
             assertThat(ambiente.getNome()).isEqualTo(tipo.getNome() + " " + ambiente.getId());
         }
     }

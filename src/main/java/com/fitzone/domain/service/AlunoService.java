@@ -2,7 +2,9 @@ package com.fitzone.domain.service;
 
 import com.fitzone.domain.exception.AlunoJaCadastradoException;
 import com.fitzone.domain.exception.AlunoNaoEncontradoException;
+import com.fitzone.domain.exception.RegistroEmUsoException;
 import com.fitzone.domain.model.Aluno;
+import com.fitzone.domain.repository.AgendamentoRepository;
 import com.fitzone.domain.repository.AlunoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,9 +16,12 @@ import java.util.List;
 public class AlunoService {
 
     private final AlunoRepository alunoRepository;
+    // o repositório, e não o AgendamentoService: o AgendamentoService já depende deste service
+    private final AgendamentoRepository agendamentoRepository;
 
-    public AlunoService(AlunoRepository alunoRepository) {
+    public AlunoService(AlunoRepository alunoRepository, AgendamentoRepository agendamentoRepository) {
         this.alunoRepository = alunoRepository;
+        this.agendamentoRepository = agendamentoRepository;
     }
 
     @Transactional
@@ -74,9 +79,18 @@ public class AlunoService {
     @Transactional
     public void excluir(Integer id) {
         Aluno aluno = buscarPorId(id);
+
+        // Checagem prévia para devolver uma mensagem clara (409). O ON DELETE RESTRICT do V3
+        // continua valendo como última linha de defesa.
+        long agendamentos = agendamentoRepository.countByAluno_Id(id);
+        if (agendamentos > 0) {
+            throw new RegistroEmUsoException("O aluno " + aluno.getNome() + " tem " + agendamentos
+                    + (agendamentos == 1 ? " agendamento" : " agendamentos")
+                    + " e não pode ser excluído. Cancele os agendamentos antes.");
+        }
+
         alunoRepository.delete(aluno);
-        // Força o DELETE agora: se o aluno tiver agendamentos, o ON DELETE RESTRICT (V3)
-        // falha aqui dentro e vira DataIntegrityViolationException (409 no handler)
+        // Força o DELETE agora, para uma eventual violação do banco aparecer dentro do método
         alunoRepository.flush();
     }
 }

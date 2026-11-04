@@ -1,5 +1,7 @@
 package com.fitzone.domain.model;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
@@ -32,15 +34,15 @@ public abstract class Ambiente {
     @Column(nullable = false, length = 100)
     private String nome;
 
-    @Column(name = "valor_hora", nullable = false)
-    private double valorHora;
+    @Column(name = "valor_hora", nullable = false, precision = 10, scale = 2)
+    private BigDecimal valorHora;
 
     @Column(name = "observacoes", length = 200)
     private String observacoes;
 
     protected Ambiente() {}
 
-    public Ambiente(Integer id, String nome, double valorHora, String observacoes){
+    public Ambiente(Integer id, String nome, BigDecimal valorHora, String observacoes){
         this.id = id;
         this.nome = nome;
         this.valorHora = valorHora;
@@ -55,8 +57,8 @@ public abstract class Ambiente {
     public String getNome()                      { return nome; }
     public void setNome(String nome)             { this.nome = nome; }
  
-    public double getValorHora()                 { return valorHora; }
-    public void setValorHora(double valorHora)   { this.valorHora = valorHora; }
+    public BigDecimal getValorHora()                 { return valorHora; }
+    public void setValorHora(BigDecimal valorHora)   { this.valorHora = valorHora; }
 
     /** Descrição livre e opcional digitada pelo usuário no cadastro (até 200 caracteres). */
     public String getObservacoes()               { return observacoes; }

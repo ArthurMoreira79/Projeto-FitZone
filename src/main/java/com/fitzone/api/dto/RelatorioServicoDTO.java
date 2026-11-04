@@ -1,7 +1,9 @@
 package com.fitzone.api.dto;
 
+import java.math.BigDecimal;
+
 public record RelatorioServicoDTO(
         String servico,
         int quantidade,
-        double valorTotal
+        BigDecimal valorTotal
 ) { }

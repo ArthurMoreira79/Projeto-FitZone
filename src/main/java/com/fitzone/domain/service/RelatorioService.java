@@ -1,5 +1,7 @@
 package com.fitzone.domain.service;
 
+import java.math.BigDecimal;
+
 import com.fitzone.api.dto.*;
 import com.fitzone.domain.model.Agendamento;
 import com.fitzone.domain.model.Aluno;
@@ -14,6 +16,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,6 +25,14 @@ public class RelatorioService {
     private final AgendamentoService agendamentoService;
     private final AlunoService alunoService;
     private final AmbienteService ambienteService;
+
+    // BigDecimal não tem summingDouble: soma com reduce, partindo de zero
+    private static final Collector<Agendamento, ?, BigDecimal> SOMA_VALOR =
+            Collectors.reducing(BigDecimal.ZERO, Agendamento::getValorTotal, BigDecimal::add);
+
+    private static BigDecimal somar(List<Agendamento> agendamentos) {
+        return agendamentos.stream().collect(SOMA_VALOR);
+    }
 
     public RelatorioService(AgendamentoService agendamentoService,
                             AlunoService alunoService,
@@ -40,7 +51,7 @@ public class RelatorioService {
         List<Agendamento> agendamentos = agendamentoService.listarPorAluno(alunoId);
 
         long horas = agendamentos.stream().mapToLong(Agendamento::getHorasCobradas).sum();
-        double valor = agendamentos.stream().mapToDouble(Agendamento::getValorTotal).sum();
+        BigDecimal valor = somar(agendamentos);
 
         return new RelatorioAlunoDTO(aluno.getId(), aluno.getNome(), agendamentos.size(), horas, valor,
                 agendamentos.stream().map(AgendamentoResponse::from).toList());
@@ -60,7 +71,7 @@ public class RelatorioService {
                     List<Agendamento> doAmbiente = agendamentosPorAmbiente.getOrDefault(ambiente.getId(), List.of());
                     // mesma regra de duração do valor cobrado: horas completas, mínimo de 1h
                     long horas = doAmbiente.stream().mapToLong(Agendamento::getHorasCobradas).sum();
-                    double valor = doAmbiente.stream().mapToDouble(Agendamento::getValorTotal).sum();
+                    BigDecimal valor = somar(doAmbiente);
                     return new RelatorioAmbienteDTO(ambiente.getId(), ambiente.getNome(), ambiente.getTipo(),
                             ambiente.getTipoAmbiente().name(), doAmbiente.size(), horas, valor);
                 })
@@ -75,20 +86,18 @@ public class RelatorioService {
     public RelatorioFaturamentoDTO faturamento() {
         List<Agendamento> todos = agendamentoService.listarTodos();
 
-        Map<LocalDate, Double> porDia = todos.stream()
-                .collect(Collectors.groupingBy(Agendamento::getDataAgendamento, TreeMap::new,
-                        Collectors.summingDouble(Agendamento::getValorTotal)));
+        Map<LocalDate, BigDecimal> porDia = todos.stream()
+                .collect(Collectors.groupingBy(Agendamento::getDataAgendamento, TreeMap::new, SOMA_VALOR));
 
-        Map<String, Double> porAmbiente = todos.stream()
-                .collect(Collectors.groupingBy(a -> a.getAmbiente().getNome(), TreeMap::new,
-                        Collectors.summingDouble(Agendamento::getValorTotal)));
+        Map<String, BigDecimal> porAmbiente = todos.stream()
+                .collect(Collectors.groupingBy(a -> a.getAmbiente().getNome(), TreeMap::new, SOMA_VALOR));
 
         // nome + id na chave: dois alunos com o mesmo nome não podem ter o faturamento somado junto
-        Map<String, Double> porAluno = todos.stream()
+        Map<String, BigDecimal> porAluno = todos.stream()
                 .collect(Collectors.groupingBy(a -> a.getAluno().getNome() + " (id " + a.getAluno().getId() + ")",
-                        TreeMap::new, Collectors.summingDouble(Agendamento::getValorTotal)));
+                        TreeMap::new, SOMA_VALOR));
 
-        double total = todos.stream().mapToDouble(Agendamento::getValorTotal).sum();
+        BigDecimal total = somar(todos);
 
         return new RelatorioFaturamentoDTO(porDia, porAmbiente, porAluno, total);
     }
@@ -109,7 +118,7 @@ public class RelatorioService {
                 .map(grupo -> new RelatorioServicoDTO(
                         grupo.getKey().getNome(),
                         grupo.getValue().size(),
-                        grupo.getValue().stream().mapToDouble(ServicoAdicional::getValorTotal).sum()))
+                        grupo.getValue().stream().map(ServicoAdicional::getValorTotal).reduce(BigDecimal.ZERO, BigDecimal::add)))
                 .toList();
     }
 }

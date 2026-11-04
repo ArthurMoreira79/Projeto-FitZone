@@ -41,11 +41,11 @@ class RelatorioServiceTest {
         RelatorioAmbienteDTO daSala = ocupacao.stream().filter(o -> o.ambienteId().equals(sala.getId())).findFirst().orElseThrow();
         assertThat(daSala.codigo()).isEqualTo("MUSCULACAO");
         assertThat(daSala.horasCobradas()).isEqualTo(2);
-        assertThat(daSala.valorTotal()).isEqualTo(210.0);
+        assertThat(daSala.valorTotal()).isEqualByComparingTo("210");
 
         RelatorioAmbienteDTO daYoga = ocupacao.stream().filter(o -> o.ambienteId().equals(yoga.getId())).findFirst().orElseThrow();
         assertThat(daYoga.quantidadeAgendamentos()).isZero(); // ocupação zero também aparece
-        assertThat(daYoga.valorTotal()).isZero();
+        assertThat(daYoga.valorTotal()).isEqualByComparingTo("0");
     }
 
     @Test

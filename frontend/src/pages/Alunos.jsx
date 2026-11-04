@@ -53,10 +53,8 @@ export default function Alunos() {
       avisar(`Aluno excluído: ${alvo.nome}.`)
       recarregar()
     } catch (e) {
-      avisar(
-        e.status === 409 ? `Não é possível excluir ${alvo.nome}: existem agendamentos para este aluno.` : e.message,
-        'erro',
-      )
+      // 409 com agendamentos: a própria API explica ("... tem 1 agendamento e não pode ser excluído")
+      avisar(e.message, 'erro')
     } finally {
       setExcluindo(false)
       setParaExcluir(null)

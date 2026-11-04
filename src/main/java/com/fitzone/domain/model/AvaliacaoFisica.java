@@ -1,5 +1,7 @@
 package com.fitzone.domain.model;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
@@ -18,5 +20,5 @@ public class AvaliacaoFisica extends ServicoAdicional{
     public TipoServico getTipoServico() { return TipoServico.AVALIACAO_FISICA; }
 
     @Override
-    public double getValorTotal() { return getTipoServico().getValor(); }
+    public BigDecimal getValorTotal() { return getTipoServico().getValor(); }
 }

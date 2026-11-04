@@ -3,35 +3,44 @@ package com.fitzone.domain.service;
 import com.fitzone.domain.exception.AmbienteJaCadastradoException;
 import com.fitzone.domain.exception.AmbienteNaoEncontradoException;
 import com.fitzone.domain.exception.LimiteAmbienteExcedidoException;
+import com.fitzone.domain.exception.RegistroEmUsoException;
 import com.fitzone.domain.model.*;
+import com.fitzone.domain.repository.AgendamentoRepository;
 import com.fitzone.domain.repository.AmbienteRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.IntStream;
 
 @Service
 public class AmbienteService {
     
     private final AmbienteRepository ambienteRepository;
+    // o repositório, e não o AgendamentoService: o AgendamentoService já depende deste service
+    private final AgendamentoRepository agendamentoRepository;
 
-    public AmbienteService(AmbienteRepository ambienteRepository) {
+    public AmbienteService(AmbienteRepository ambienteRepository, AgendamentoRepository agendamentoRepository) {
         this.ambienteRepository = ambienteRepository;
+        this.agendamentoRepository = agendamentoRepository;
     }
 
     /**
-     * Cadastra um ambiente do tipo informado, gerando o próximo id livre da faixa
-     * do TipoAmbiente e nome padronizado
+     * Cadastra um ambiente do tipo informado, com o primeiro id livre da faixa
+     * do TipoAmbiente e nome padronizado.
+     * Ids de ambientes excluídos voltam a ser usados: com 10 ids por tipo, "MAX + 1"
+     * esgotaria a faixa mesmo com vagas no meio. Reaproveitar é seguro porque só é
+     * possível excluir ambiente sem agendamentos (não há histórico ligado ao id).
      */
     @Transactional
     public Ambiente cadastrar(TipoAmbiente tipo, String observacoes) {
-        Integer maiorId = ambienteRepository.buscarMaiorIdPorTipo(tipo.getClasse());
-        int proximoId = (maiorId == null) ? tipo.getInicioFaixa() : maiorId + 1;
-
-        if (proximoId > tipo.getFimFaixa()) {
-            throw new LimiteAmbienteExcedidoException("Limite de ambientes do tipo " + tipo.getNome()
-                    + " atingido (faixa " + tipo.getInicioFaixa() + "-" + tipo.getFimFaixa() + " esgotada).");
-        }
+        Set<Integer> usados = ambienteRepository.buscarIdsPorTipo(tipo.getClasse());
+        int proximoId = IntStream.rangeClosed(tipo.getInicioFaixa(), tipo.getFimFaixa())
+                .filter(id -> !usados.contains(id))
+                .findFirst()
+                .orElseThrow(() -> new LimiteAmbienteExcedidoException("Limite de ambientes do tipo " + tipo.getNome()
+                        + " atingido (faixa " + tipo.getInicioFaixa() + "-" + tipo.getFimFaixa() + " esgotada)."));
 
         //Como o id NÃO é gerado pelo banco, o save() com id preenchido faz um merge:
         //se esse id já existe, ele SOBRESCREVERIA o ambiente em vez de dar erro. 
@@ -74,8 +83,16 @@ public class AmbienteService {
     @Transactional
     public void excluir(Integer id) {
         Ambiente ambiente = buscarPorId(id);
+
+        // mensagem clara (409); o ON DELETE RESTRICT do banco segue como última linha de defesa
+        long agendamentos = agendamentoRepository.countByAmbiente_Id(id);
+        if (agendamentos > 0) {
+            throw new RegistroEmUsoException("O ambiente " + ambiente.getNome() + " tem " + agendamentos
+                    + (agendamentos == 1 ? " agendamento" : " agendamentos")
+                    + " e não pode ser excluído. Cancele os agendamentos antes.");
+        }
+
         ambienteRepository.delete(ambiente);
-        // ambiente com agendamentos: ON DELETE RESTRICT falha aqui (409 no handler)
         ambienteRepository.flush();
     }
 }

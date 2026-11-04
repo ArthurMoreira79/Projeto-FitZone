@@ -1,5 +1,7 @@
 package com.fitzone.api.dto;
 
+import java.math.BigDecimal;
+
 public record RelatorioAmbienteDTO(
         Integer ambienteId,
         String nome,
@@ -9,5 +11,5 @@ public record RelatorioAmbienteDTO(
         int quantidadeAgendamentos,
         long horasCobradas,
         // soma do valor total dos agendamentos do ambiente (serviços incluídos)
-        double valorTotal
+        BigDecimal valorTotal
 ) { }

@@ -1,5 +1,7 @@
 package com.fitzone.api.dto;
 
+import java.math.BigDecimal;
+
 import com.fitzone.domain.model.ServicoAdicional;
 
 public record ServicoResponse(
@@ -7,7 +9,7 @@ public record ServicoResponse(
         // código estável do enum ("LOCKER"), para lógica no front; descricao é texto de exibição
         String codigo,
         String descricao,
-        double valorTotal
+        BigDecimal valorTotal
 ) {
     // getDescricao() e getValorTotal() são polimórficos: cada serviço calcula o seu
     public static ServicoResponse from(ServicoAdicional servico) {

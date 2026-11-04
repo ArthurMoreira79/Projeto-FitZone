@@ -1,5 +1,7 @@
 package com.fitzone.api.dto;
 
+import java.math.BigDecimal;
+
 import com.fitzone.domain.model.Ambiente;
 
 public record AmbienteResponse(
@@ -7,7 +9,7 @@ public record AmbienteResponse(
         String codigo,
         String tipo,
         String nome,
-        double valorHora,
+        BigDecimal valorHora,
         String observacoes
 ) {
     // codigo é o nome do enum ("YOGA"): estável, feito para o front usar em lógica.

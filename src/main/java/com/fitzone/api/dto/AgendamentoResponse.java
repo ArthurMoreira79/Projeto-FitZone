@@ -1,5 +1,7 @@
 package com.fitzone.api.dto;
 
+import java.math.BigDecimal;
+
 import com.fitzone.domain.model.Agendamento;
 
 import java.time.LocalDate;
@@ -18,7 +20,7 @@ public record AgendamentoResponse(
         LocalTime horaInicio,
         LocalTime horaFim,
         long horasCobradas,
-        double valorTotal,
+        BigDecimal valorTotal,
         List<ServicoResponse> servicos
 ) {
     public static AgendamentoResponse from(Agendamento agendamento) {

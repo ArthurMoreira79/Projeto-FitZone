@@ -1,5 +1,7 @@
 package com.fitzone.domain.model;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -36,5 +38,5 @@ public class LockerAcademia extends ServicoAdicional{
     }
 
     @Override
-    public double getValorTotal() { return getTipoServico().getValor() * quantidade; }
+    public BigDecimal getValorTotal() { return getTipoServico().getValor().multiply(BigDecimal.valueOf(quantidade)); }
 }

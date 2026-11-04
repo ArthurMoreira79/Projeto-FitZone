@@ -1,49 +1,352 @@
 # FitZone — Sistema de Gestão de Academia
 
-Projeto desenvolvido a princípio para revisar conceitos da Programação Orientada a Objetos, simulando a gestão de uma academia/estúdio fitness: cadastro de alunos, ambientes reserváveis (sala de musculação, yoga, crossfit, piscina), agendamentos com serviços adicionais (avaliação física, nutricionista, personal trainer, locker) e relatórios de ocupação e faturamento.
+[![CI](https://github.com/ArthurMoreira79/Projeto-FitZone/actions/workflows/ci.yml/badge.svg)](https://github.com/ArthurMoreira79/Projeto-FitZone/actions/workflows/ci.yml)
+![Java 21](https://img.shields.io/badge/Java-21-orange)
+![Spring Boot 4](https://img.shields.io/badge/Spring%20Boot-4-6DB33F)
+![MySQL 8](https://img.shields.io/badge/MySQL-8-4479A1)
+![Flyway](https://img.shields.io/badge/Flyway-migrations-CC0200)
+![React 19](https://img.shields.io/badge/React-19-61DAFB)
+![Vite](https://img.shields.io/badge/Vite-8-646CFF)
 
-O projeto evoluiu em fases — de um sistema de console em Java puro até uma **API REST com Spring Boot, MySQL e Flyway** consumida por um **front-end em React**. Este README documenta o estado atual e o histórico de cada fase.
+Sistema web para a recepção de uma academia: cadastro de alunos, reserva de ambientes (musculação, yoga, crossfit e piscina), serviços adicionais vendidos junto com a reserva (avaliação física, nutricionista, personal trainer e locker) e relatórios de ocupação e faturamento.
 
----
-
-## 1. Estado atual (Fase 5 concluída — front-end React + API REST)
-
-**Front-end** (`frontend/`)
-- **React 19 + Vite 8 + React Router 7**, em JavaScript, conversando com a API por um cliente HTTP único (`src/api/client.js`) que transforma qualquer `ErroResposta` da API num `ApiError` com status, mensagem e campos inválidos.
-- **Cinco telas**: Painel (o movimento de hoje, com o que está em andamento e os próximos agendamentos), Agendamentos (lista com filtros opcionais de data e ambiente, novo agendamento com horários ocupados e prévia do valor, detalhe com serviços e cancelamento), Alunos (busca por nome, CPF ou e-mail, cadastro e edição com máscaras), Ambientes (agrupados por tipo, cadastro, edição de observações e exclusão) e Relatórios (faturamento por dia, ocupação dos ambientes e serviços vendidos, com gráficos).
-- **Nenhuma regra de cobrança no front**: a prévia do valor vem do endpoint de orçamento e os preços vêm dos endpoints de tipos — a regra de horas cobradas continua existindo só em `Agendamento.getHorasCobradas()`.
-- **Identidade visual**: fonte Archivo (condensada nos títulos e horários) e as cores das anilhas olímpicas identificando cada tipo de ambiente (vermelho = musculação, verde = yoga, amarelo = crossfit, azul = piscina).
-- **Acessibilidade de base**: modais com `<dialog>` nativo (foco preso, Esc), foco visível, erros ligados aos campos (`aria-invalid`, `aria-describedby`), avisos anunciados por leitores de tela, tabela alternativa nos gráficos e layout que funciona no celular.
-
-**Back-end** (API REST)
-- **API REST** com Spring Boot 4 (Java 21): CRUD de alunos e ambientes, agendamentos com serviços adicionais e 4 relatórios, em `/api/*`.
-- **Arquitetura em camadas**: `domain` (modelo, repositórios, services, exceções) separado de `api` (controllers, DTOs, tratamento de erros) — as regras de negócio não sabem que existe HTTP.
-- **Banco versionado com Flyway**: o schema é criado e evoluído por migrations (`src/main/resources/db/migration`); o Hibernate só valida (`ddl-auto=validate`).
-- **Regras de negócio também no banco**: constraints `CHECK` (horário, valores, faixa de ids por tipo, tipos válidos, quantidade de lockers), `UNIQUE` (CPF, e-mail) e FKs com `ON DELETE RESTRICT` — última linha de defesa caso algum bug passe pelos services.
-- **Modelagem OO preservada**: `Ambiente` e `ServicoAdicional` são classes abstratas com herança `SINGLE_TABLE` e polimorfismo real (cada subtipo calcula sua descrição e seu valor).
-- **DTOs (records) na fronteira da API** com Bean Validation — as entidades JPA nunca são expostas no JSON.
-- **Erros padronizados**: um `@RestControllerAdvice` converte cada exceção no status certo (400, 404, 405, 409, 415, 500), sempre no mesmo formato JSON, com a lista de campos inválidos quando é erro de validação.
-- **Testes**: 25 testes de integração (JUnit 5 + `@SpringBootTest`) contra um banco MySQL próprio de testes (`fitzone_test`), mais uma coleção do Postman com os cenários de teste manual (`postman/` e [Roteiro.md](Roteiro.md)).
-- **Credenciais fora do código**: lidas de um arquivo `.env` que não é versionado.
-
-### Pendências conhecidas
-
-Pontos identificados durante as Fases 4 e 5 e deixados conscientemente para depois:
-
-- [ ] **Valores em `DOUBLE`**: `valor_hora` e `valor_total` deveriam ser `DECIMAL` (`BigDecimal` no Java) para evitar erro de arredondamento em dinheiro. Exige uma migration nova (V5) e trocar `double` nas entidades, no cálculo e nos relatórios.
-- [ ] **Ids da faixa não são reaproveitados**: o próximo id de ambiente é `MAX + 1` do tipo. Se um ambiente do meio da faixa for excluído, o número não volta a ser usado — com 10 ids por tipo, a faixa pode esgotar antes da hora. Alternativa: procurar o primeiro id livre da faixa.
-- [ ] **Excluir aluno/ambiente com agendamentos** devolve a mensagem genérica "Conflito de integridade" (vinda do banco). Uma checagem prévia no service (`existsByAluno_Id`) com exceção própria daria uma mensagem mais clara.
-- [ ] **Relatórios agregam em memória** (`findAll()` + streams). Suficiente para o volume atual; com muitos dados, o ideal é consultas com `GROUP BY` no banco.
-- [ ] **Relatórios sem filtro de período**: o faturamento por dia mostra só os dias com movimento, igualmente espaçados. Um parâmetro de datas em `/relatorios/faturamento` permitiria "últimos 30 dias" com os dias vazios aparecendo como zero.
-- [ ] **Não dá para remover um serviço** de um agendamento (falta `DELETE /api/agendamentos/{id}/servicos/{servicoId}`); hoje a única saída é cancelar o agendamento.
-- [ ] **Sem autenticação**: o front é um painel administrativo aberto. Login (Spring Security + JWT) fica para quando houver mais de um tipo de usuário.
-- [ ] **Listas carregadas inteiras** (alunos, agendamentos) e filtradas no navegador. Ótimo para o volume de uma academia; com milhares de registros, o caminho é paginação na API.
+É uma **API REST em Spring Boot** com MySQL e um **front-end em React** que consome essa API. O projeto começou como um exercício de Orientação a Objetos em Java puro, rodando no console, e evoluiu em cinco fases até chegar aqui. Cada fase tem uma tag no Git, então dá para ver o código em qualquer etapa (veja [Evolução do projeto](#evolução-do-projeto)).
 
 ---
 
-## 2. Roadmap de evolução
+## Telas
 
-A ideia aqui é evoluir em fases, sem misturar muita coisa nova de uma vez. Cada fase assume que a anterior está estável.
+**Painel**: o movimento do dia e os próximos agendamentos, com o valor e as horas cobradas de cada um.
+
+![Painel com os indicadores do dia e a lista dos próximos agendamentos](docs/img/painel.png)
+
+| Agendamentos | Novo agendamento |
+|---|---|
+| ![Lista de agendamentos com filtros por data e ambiente](docs/img/agendamentos.png) | ![Formulário de novo agendamento com aluno, ambiente, data e horários](docs/img/novo-agendamento.png) |
+| **Relatórios** | **Ambientes** |
+| ![Relatórios com faturamento total, gráfico de faturamento por dia e ocupação dos ambientes](docs/img/relatorios.png) | ![Ambientes agrupados por tipo, cada tipo com sua cor e o valor por hora](docs/img/ambientes.png) |
+| **Alunos** | **Novo aluno** |
+| ![Lista de alunos com busca por nome, CPF ou e-mail](docs/img/alunos.png) | ![Formulário de cadastro de aluno com máscaras de CPF e telefone](docs/img/novo-aluno.png) |
+| **Novo ambiente** | |
+| ![Formulário de novo ambiente com tipo e observações](docs/img/novo-ambiente.png) | |
+
+---
+
+## O que o sistema faz
+
+- **Painel do dia**: o que está acontecendo agora e os próximos agendamentos, atualizado a cada minuto.
+- **Agendamentos**: lista filtrável por data e ambiente; ao criar um agendamento, o sistema mostra os horários já ocupados e a **prévia do valor** antes de salvar; no detalhe, dá para adicionar serviços ou cancelar.
+- **Alunos**: busca por nome, CPF ou e-mail, cadastro e edição com máscaras de CPF e telefone.
+- **Ambientes**: agrupados por tipo, com cadastro, edição de observações e exclusão.
+- **Relatórios**: faturamento por dia, ocupação de cada ambiente e serviços vendidos, com gráficos e tabela alternativa.
+
+Regras principais: só horas completas são cobradas (2h40 → 2h, mínimo de 1h), dois agendamentos não podem se sobrepor no mesmo ambiente e quem tem agendamento não pode ser excluído. Tabela de preços completa em [Regras de negócio e preços](#regras-de-negócio-e-preços).
+
+---
+
+## Destaques técnicos
+
+Decisões que valem a pena olhar no código:
+
+- **A regra de cobrança existe em um lugar só.** `Agendamento.getHorasCobradas()` define as horas cobradas. O valor da reserva, o personal trainer, os relatórios e a prévia do front usam esse método. O front não calcula preço: pede um orçamento à API, que monta um `Agendamento` temporário e não grava nada. A regra já esteve duplicada e isso gerou um bug de valores negativos nos relatórios (Fase 2); centralizar foi a correção.
+- **Herança com polimorfismo de verdade no JPA.** `Ambiente` e `ServicoAdicional` são classes abstratas mapeadas com `SINGLE_TABLE`. Cada subtipo calcula o próprio valor (o locker cobra por unidade, o personal por hora). Os enums `TipoAmbiente` e `TipoServico` são a ficha técnica de cada tipo: nome, preço, faixa de ids e forma de cobrança.
+- **O banco também protege as regras.** O schema é versionado com Flyway, e o Hibernate só valida (`ddl-auto=validate`). Constraints `CHECK` (horário, valores positivos, faixa de ids por tipo, quantidade de lockers), `UNIQUE` (CPF, e-mail) e FKs `ON DELETE RESTRICT` são a última barreira caso um bug passe pelos services.
+- **Dinheiro em `BigDecimal`/`DECIMAL(10,2)`**, nunca em `double`: ponto flutuante binário não representa centavos exatamente e as somas dos relatórios acumulariam erro. Os preços nascem como texto nos enums (`new BigDecimal("70.00")`).
+- **Conflito de horário resolvido no banco**, com uma consulta JPQL indexada, em vez de carregar todos os agendamentos na memória.
+- **Camadas bem separadas.** `domain` (modelo, repositórios, services, exceções) não sabe que existe HTTP. `api` traz controllers, DTOs e tratamento de erros. Entidades JPA nunca saem no JSON: entrada e saída são `record`s validados com Bean Validation.
+- **Erros previsíveis.** Um `@RestControllerAdvice` converte cada exceção no status certo (400, 404, 405, 409, 415, 500), sempre no mesmo formato JSON, com os campos inválidos. O front mostra essas mensagens direto em cada campo do formulário.
+- **Dado pessoal fora da URL.** O aluno tem chave substituta (`id`); o CPF é só um campo `UNIQUE` e nunca aparece em path.
+- **Front-end sem biblioteca de UI**, com cuidados de acessibilidade: modais com `<dialog>` nativo, erros ligados aos campos (`aria-invalid`, `aria-describedby`), avisos lidos por leitores de tela, gráficos com tabela alternativa e cores que nunca aparecem sem o nome do tipo ao lado (o par vermelho/verde reprova no teste de daltonismo).
+- **Testes de integração** (29, JUnit 5 + `@SpringBootTest`) contra um MySQL real em um banco próprio (`fitzone_test`), com rollback em cada teste. Rodam a cada push no **GitHub Actions**, junto com o lint e o build do front. Também há uma coleção do Postman e um [roteiro de testes manuais](Roteiro.md).
+
+---
+
+## Arquitetura
+
+```mermaid
+flowchart LR
+    U([Recepção]) --> F["Front-end React<br/>localhost:5173"]
+    F -- "JSON / HTTP" --> C
+    subgraph API ["API Spring Boot · :8080/api"]
+        C["api<br/>controllers · DTOs · erros"] --> S["domain.service<br/>regras de negócio"]
+        S --> R["domain.repository<br/>Spring Data JPA"]
+    end
+    R --> DB[("MySQL<br/>schema via Flyway")]
+```
+
+### Modelo de domínio
+
+```mermaid
+classDiagram
+    direction LR
+
+    class Aluno {
+        -Integer id
+        -String cpf
+        -String nome
+        -String email
+        -String telefone
+        -LocalDate dataCadastro
+    }
+
+    class Agendamento {
+        -Integer id
+        -LocalDate dataAgendamento
+        -LocalTime horaInicio
+        -LocalTime horaFim
+        -double valorTotal
+        +getHorasCobradas() long
+        +adicionarServico(ServicoAdicional)
+        +recalcularValorTotal()
+    }
+
+    class Ambiente {
+        <<abstract>>
+        -Integer id
+        -String nome
+        -double valorHora
+        -String observacoes
+        +getTipoAmbiente()* TipoAmbiente
+        +getDescricao()* String
+    }
+    class SalaMusculacao
+    class SalaYoga
+    class SalaCrossfit
+    class Piscina
+
+    class ServicoAdicional {
+        <<abstract>>
+        -Long id
+        +getTipoServico()* TipoServico
+        +getValorTotal()* double
+        +getDescricao() String
+    }
+    class AvaliacaoFisica
+    class Nutricionista
+    class PersonalTrainer
+    class LockerAcademia {
+        -int quantidade
+    }
+
+    class TipoAmbiente {
+        <<enumeration>>
+        MUSCULACAO
+        YOGA
+        CROSSFIT
+        PISCINA
+        nome, valorHora, faixa de ids
+    }
+    class TipoServico {
+        <<enumeration>>
+        AVALIACAO_FISICA
+        NUTRICIONISTA
+        PERSONAL_TRAINER
+        LOCKER
+        nome, valor, cobranca
+    }
+
+    Agendamento "*" --> "1" Aluno
+    Agendamento "*" --> "1" Ambiente
+    Agendamento "1" *-- "*" ServicoAdicional : servicosAdicionais
+
+    Ambiente <|-- SalaMusculacao
+    Ambiente <|-- SalaYoga
+    Ambiente <|-- SalaCrossfit
+    Ambiente <|-- Piscina
+
+    ServicoAdicional <|-- AvaliacaoFisica
+    ServicoAdicional <|-- Nutricionista
+    ServicoAdicional <|-- PersonalTrainer
+    ServicoAdicional <|-- LockerAcademia
+
+    Ambiente ..> TipoAmbiente
+    ServicoAdicional ..> TipoServico
+```
+
+- `Ambiente` e `ServicoAdicional` usam herança `SINGLE_TABLE`: uma tabela por hierarquia, com a coluna `tipo` como discriminador.
+- Os serviços pertencem ao agendamento (composição): cancelar a reserva remove os serviços dela (`orphanRemoval` + `ON DELETE CASCADE`).
+- O `PersonalTrainer` cobra pelas horas do agendamento ao qual pertence. O `LockerAcademia` cobra por unidade e é o único serviço com `quantidade`.
+
+### Stack
+
+| Camada | Tecnologias |
+|---|---|
+| Back-end | Java 21, Spring Boot 4 (Web, Data JPA, Validation), Hibernate, Maven Wrapper |
+| Banco | MySQL 8, Flyway (5 migrations) |
+| Front-end | React 19, Vite 8, React Router 8, JavaScript, CSS puro, oxlint |
+| Testes e CI | JUnit 5, Spring Boot Test, Postman, GitHub Actions |
+
+---
+
+## Como rodar
+
+**Pré-requisitos:** JDK 21, MySQL **8.0.16 ou mais novo** rodando localmente (versões anteriores aceitam as constraints `CHECK` mas não as aplicam) e, para o front-end, **Node.js 20 ou mais novo**. Não é preciso instalar o Maven: o projeto traz o Maven Wrapper (`mvnw`).
+
+**1. Criar o banco** (só o banco, vazio — as tabelas são criadas pelo Flyway):
+
+```sql
+CREATE DATABASE fitzone;
+```
+
+**2. Configurar as credenciais**: copie o `.env.example` para `.env` na raiz do projeto e preencha:
+
+```properties
+DB_USERNAME=root
+DB_PASSWORD=sua_senha_do_mysql
+```
+
+O `.env` está no `.gitignore` e nunca deve ser commitado. Se aparecer `Could not resolve placeholder 'DB_USERNAME'`, a aplicação foi executada fora da raiz do projeto e não encontrou o arquivo.
+
+**3. Subir a API** (na raiz do projeto):
+
+```bash
+.\mvnw.cmd spring-boot:run
+```
+
+(No Linux/macOS: `./mvnw spring-boot:run`.) Na primeira execução, o Flyway aplica as migrations e cria as tabelas. A API fica em `http://localhost:8080/api`.
+
+**4. Rodar os testes:**
+
+```bash
+.\mvnw.cmd test
+```
+
+Os testes usam o banco **`fitzone_test`**, criado automaticamente na primeira execução (profile `test`, em `src/test/resources/application-test.properties`). Cada teste roda numa transação desfeita no final, então o banco de testes fica sempre vazio e **o banco `fitzone` de desenvolvimento nunca é tocado**.
+
+**5. Subir o front-end** (com a API rodando, em outro terminal):
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+O sistema abre em `http://localhost:5173`. O endereço da API está em `frontend/.env.development` (`VITE_API_URL`); se o front rodar em outra origem, ela precisa estar em `fitzone.cors.origens-permitidas`, no `application.properties`, senão o navegador bloqueia as requisições (erro de CORS no Console). Para conferir o código: `npm run lint`.
+
+**6. Testar manualmente:** a coleção do Postman está em `postman/` e o checklist dos cenários em [Roteiro.md](Roteiro.md).
+
+---
+
+## API
+
+| Recurso | Rotas |
+|---|---|
+| Alunos | `POST /api/alunos` · `GET /api/alunos` · `GET /api/alunos/{id}` · `GET /api/alunos/busca?cpf=` · `PUT /api/alunos/{id}` · `DELETE /api/alunos/{id}` |
+| Ambientes | `POST /api/ambientes` · `GET /api/ambientes` · `GET /api/ambientes/{id}` · `PUT /api/ambientes/{id}` (só observações) · `DELETE /api/ambientes/{id}` · `GET /api/ambientes/tipos` |
+| Agendamentos | `POST /api/agendamentos` · `GET /api/agendamentos?data=&ambienteId=&alunoId=` (filtros opcionais) · `GET /api/agendamentos/{id}` · `GET /api/agendamentos/orcamento?ambienteId=&horaInicio=&horaFim=` · `POST /api/agendamentos/{id}/servicos` · `DELETE /api/agendamentos/{id}/servicos/{servicoId}` · `DELETE /api/agendamentos/{id}` |
+| Serviços | `GET /api/servicos/tipos` (catálogo: nome, preço e forma de cobrança) |
+| Relatórios | `GET /api/relatorios/alunos/{id}` · `GET /api/relatorios/ambientes` · `GET /api/relatorios/faturamento` · `GET /api/relatorios/servicos` |
+
+Exemplos de corpo:
+
+```jsonc
+// POST /api/alunos
+{ "cpf": "12345678901", "nome": "Ana Souza", "email": "ana@email.com", "telefone": "11987654321" }
+
+// POST /api/ambientes   (tipo: MUSCULACAO | YOGA | CROSSFIT | PISCINA)
+{ "tipo": "YOGA", "observacoes": "Sala climatizada" }
+
+// POST /api/agendamentos
+{ "alunoId": 1, "ambienteId": 101, "data": "2026-12-01", "horaInicio": "08:00", "horaFim": "10:40" }
+
+// POST /api/agendamentos/{id}/servicos   (tipo: AVALIACAO_FISICA | NUTRICIONISTA | PERSONAL_TRAINER | LOCKER)
+{ "tipo": "LOCKER", "quantidade": 2 }
+```
+
+Todo erro volta no mesmo formato:
+
+```json
+{
+  "status": 400,
+  "titulo": "Dados inválidos",
+  "mensagem": "Um ou mais campos estão inválidos. Corrija e tente novamente.",
+  "caminho": "/api/alunos",
+  "dataHora": "2026-10-20T16:30:00",
+  "campos": [ { "nome": "cpf", "mensagem": "O CPF deve conter exatamente 11 dígitos, sem pontos ou traço" } ]
+}
+```
+
+### Regras de negócio e preços
+
+| Item | Valor |
+|---|---|
+| Sala de Musculação (ids 101–110) | R$ 100,00/h |
+| Sala de Yoga (ids 201–210) | R$ 70,00/h |
+| Sala de Crossfit (ids 301–310) | R$ 100,00/h |
+| Piscina (ids 401–410) | R$ 80,00/h |
+| Avaliação física | R$ 70,00 (fixo) |
+| Nutricionista | R$ 80,00 (fixo) |
+| Personal trainer | R$ 50,00 por hora cobrada do agendamento |
+| Locker | R$ 5,00 por unidade |
+
+- **Horas cobradas**: só horas completas (2h40 → 2h); reservas menores que 1 hora pagam 1 hora cheia.
+- **Conflito de horário**: dois agendamentos no mesmo ambiente e dia não podem se sobrepor; horários "encostados" (8h–9h e 9h–10h) são permitidos.
+- **Exclusão**: aluno ou ambiente com agendamentos não pode ser excluído (409, com a mensagem dizendo quantos agendamentos existem). Cancelar um agendamento remove os serviços dele; um serviço também pode ser removido sozinho, e o total é recalculado.
+- **Ids de ambiente**: cada tipo tem uma faixa de 10 ids, e o cadastro usa o primeiro livre. Um id de ambiente excluído volta a ser usado, o que é seguro porque só se exclui ambiente sem agendamentos.
+
+---
+
+## Estrutura de pastas
+
+<details>
+<summary>Ver a árvore de pastas</summary>
+
+```
+Projeto-FitZone/
+├── .env.example              # chaves de configuração (o .env real não é versionado)
+├── frontend/                 # front-end React + Vite
+│   ├── .env.development      # VITE_API_URL (endereço da API, não é segredo)
+│   └── src/
+│       ├── api/              # cliente HTTP central + um módulo por recurso
+│       ├── avisos/           # Context dos avisos (useAviso)
+│       ├── components/       # Layout, Modal, Botao, campos, gráficos, itens e modais de cada tela
+│       ├── hooks/            # useDados (busca/recarga) e useAgora (relógio)
+│       ├── pages/            # Painel, Agendamentos, Alunos, Ambientes, Relatorios, NaoEncontrada
+│       ├── formatos.js       # moeda, CPF, telefone, datas e horas (sem armadilhas de fuso)
+│       └── index.css         # tokens de cor e fonte, tabelas, campos e anilhas
+├── postman/                  # coleção do Postman (testes manuais)
+├── Roteiro.md                # checklist dos testes manuais
+└── src/
+    ├── main/
+    │   ├── java/com/fitzone/
+    │   │   ├── FitzoneApplication.java   # ponto de entrada Spring Boot
+    │   │   ├── domain/
+    │   │   │   ├── model/        # entidades JPA + enums TipoAmbiente e TipoServico
+    │   │   │   ├── repository/   # interfaces Spring Data JPA
+    │   │   │   ├── service/      # regras de negócio (@Service, @Transactional)
+    │   │   │   └── exception/    # exceções de domínio (unchecked)
+    │   │   └── api/
+    │   │       ├── config/           # CorsConfig (origens liberadas para o front)
+    │   │       ├── controller/       # @RestController por recurso
+    │   │       ├── dto/              # records de request/response e dos relatórios
+    │   │       └── exceptionhandler/ # ApiExceptionHandler + ErroResposta
+    │   └── resources/
+    │       ├── application.properties
+    │       └── db/migration/     # migrations Flyway (V1..V5)
+    └── test/
+        ├── java/com/fitzone/domain/service/       # testes de integração dos services
+        └── resources/application-test.properties  # profile de teste (banco fitzone_test)
+```
+
+</details>
+
+---
+
+## Evolução do projeto
+
+O FitZone foi construído em fases, cada uma sobre a anterior já estável. Cada fase tem uma tag; o link abre o repositório como ele estava ao fim dela.
+
+| Fase | Tag | O que mudou |
+|---|---|---|
+| 1 — Java puro | [`v1-poo`](https://github.com/ArthurMoreira79/Projeto-FitZone/tree/v1-poo) | Sistema de console com POO: validações de entrada, Javadoc e testes JUnit 5 |
+| 2 — Banco de dados | [`v2-jpa`](https://github.com/ArthurMoreira79/Projeto-FitZone/tree/v2-jpa) | Arquivos `.dat` trocados por JPA/Hibernate + MySQL; conflito de horário consultado no banco |
+| 3 — Console melhorado | [`v3-console`](https://github.com/ArthurMoreira79/Projeto-FitZone/tree/v3-console) | Cores ANSI, nova tentativa em vez de cancelar a operação, tabelas alinhadas |
+| 4 — API REST | [`v4-spring-api`](https://github.com/ArthurMoreira79/Projeto-FitZone/tree/v4-spring-api) | Migração para Spring Boot, escrita à mão: Flyway, services, DTOs, tratamento de erros e testes de integração; o console foi removido |
+| 5 — Front-end web | [`v5-web`](https://github.com/ArthurMoreira79/Projeto-FitZone/tree/v5-web) | Front-end React consumindo a API; endpoints de tipos e orçamento criados para o front |
+| 6 — Portfólio | — | Este README, diagramas, tags por fase e acabamentos (em andamento) |
+
+<details>
+<summary><strong>Histórico detalhado de cada fase</strong> (o que foi feito, decisões e bugs encontrados)</summary>
 
 ### Fase 1 — Robustez e boas práticas (Java puro) ✔ (concluída)
 
@@ -82,7 +385,7 @@ Trocar a serialização em `.dat` por um banco de verdade:
 
 ### Fase 4 — API REST com Spring Boot ✔ (concluída)
 
-A migração foi feita **à mão, passo a passo**, a partir do código da Fase 3. Uma primeira versão gerada com ajuda de IA ficou guardada na tag `fase4-teste`, como referência; a versão atual foi reescrita do zero para fins de aprendizado e aproveitou para revisar várias decisões.
+A migração foi feita **à mão, passo a passo**, a partir do código da Fase 3. Uma primeira versão gerada com ajuda de IA serviu só de referência e foi descartada; a versão atual foi reescrita do zero para fins de aprendizado e aproveitou para revisar várias decisões.
 
 **Estrutura e infraestrutura**
 - ✔ Projeto gerado pelo Spring Initializr (Spring Boot 4, Java 21, Maven Wrapper) e código movido para o pacote base `com.fitzone`, organizado em `domain` e `api`.
@@ -136,13 +439,33 @@ Escolhida a "Opção B": o Spring Boot continua como API REST e o front-end é u
 - ✔ Datas tratadas sem `toISOString()`/`new Date("AAAA-MM-DD")`, que convertem para UTC e mostrariam o dia errado no fuso de Brasília.
 - ✔ Gráficos feitos em HTML/CSS: barras de uma cor só (as cores das anilhas reprovaram no teste de daltonismo e ficaram só como marca ao lado do nome), valor no maior dia, dica ao passar o mouse ou focar com Tab e tabela alternativa.
 
-### Fase 6 — Portfólio
+### Fase 6 — Portfólio (em andamento)
 
-- Documentar o projeto com prints de tela, diagrama de classes atualizado e instruções claras de setup (esse próprio README pode evoluir pra isso).
-- Organizar o histórico do Git por fase (tags tipo `v1-poo`, `v2-jpa`, `v3-console`, `v4-spring-api`, `v5-web`), mostrando a evolução — isso conta muito mais do que só o código final.
-- Um projeto que nasce simples (CRUD + regras de negócio) e evolui até virar API + front-end é um ótimo case pra mostrar a clientes ou recrutadores que você entende o ciclo completo, não só uma parte isolada.
+- ✔ Histórico do Git organizado com uma tag por fase (`v1-poo`, `v2-jpa`, `v3-console`, `v4-spring-api`, `v5-web`).
+- ✔ README reescrito para quem chega no repositório pela primeira vez: o que o sistema faz, destaques técnicos, diagrama de arquitetura e de classes (Mermaid); o histórico das fases ficou nesta seção recolhida.
+- ✔ Prints das telas em `docs/img/`.
+- ✔ Dinheiro em `DECIMAL(10,2)` / `BigDecimal` (migration V5): `valor_hora` e `valor_total` eram `DOUBLE`.
+- ✔ Excluir aluno/ambiente com agendamentos responde com mensagem clara (`RegistroEmUsoException`, 409) em vez do genérico "Conflito de integridade" do banco.
+- ✔ Ids de ambiente excluído voltam a ser usados (primeiro id livre da faixa, em vez de `MAX + 1`).
+- ✔ Remover um serviço do agendamento: `DELETE /api/agendamentos/{id}/servicos/{servicoId}` e botão **Remover** no detalhe.
+- ✔ CI no GitHub Actions: testes de integração com MySQL e lint + build do front a cada push.
 
-### Ideias para o futuro (fora do roadmap atual)
+</details>
+
+---
+
+## Limitações conhecidas
+
+Pontos identificados nas Fases 4 e 5 e deixados conscientemente para depois (os que foram resolvidos na Fase 6 estão no histórico):
+
+- [ ] **Relatórios agregam em memória** (`findAll()` + streams). Suficiente para o volume atual; com muitos dados, o ideal é consultas com `GROUP BY` no banco.
+- [ ] **Relatórios sem filtro de período**: o faturamento por dia mostra só os dias com movimento, igualmente espaçados. Um parâmetro de datas em `/relatorios/faturamento` permitiria "últimos 30 dias" com os dias vazios aparecendo como zero.
+- [ ] **Sem autenticação**: o front é um painel administrativo aberto. Login (Spring Security + JWT) fica para quando houver mais de um tipo de usuário.
+- [ ] **Listas carregadas inteiras** (alunos, agendamentos) e filtradas no navegador. Ótimo para o volume de uma academia; com milhares de registros, o caminho é paginação na API.
+
+---
+
+## Ideias para o futuro
 
 Possíveis expansões, ainda sem fase definida:
 
@@ -152,151 +475,3 @@ Possíveis expansões, ainda sem fase definida:
 - **Página do professor**: o professor analisa as avaliações físicas dos alunos e entrega treinos personalizados.
 
 As três páginas novas pedem **autenticação com perfis** (recepção/gestão, aluno, professor) e regras de acesso por perfil na API — provavelmente o primeiro passo de qualquer uma delas.
-
----
-
-## 3. Como rodar
-
-**Pré-requisitos:** JDK 21, MySQL **8.0.16 ou mais novo** rodando localmente (versões anteriores aceitam as constraints `CHECK` mas não as aplicam) e, para o front-end, **Node.js 20 ou mais novo**. Não é preciso instalar o Maven: o projeto traz o Maven Wrapper (`mvnw`).
-
-**1. Criar o banco** (só o banco, vazio — as tabelas são criadas pelo Flyway):
-
-```sql
-CREATE DATABASE fitzone;
-```
-
-**2. Configurar as credenciais**: copie o `.env.example` para `.env` na raiz do projeto e preencha:
-
-```properties
-DB_USERNAME=root
-DB_PASSWORD=sua_senha_do_mysql
-```
-
-O `.env` está no `.gitignore` e nunca deve ser commitado. Se aparecer `Could not resolve placeholder 'DB_USERNAME'`, a aplicação foi executada fora da raiz do projeto e não encontrou o arquivo.
-
-**3. Subir a API** (na raiz do projeto):
-
-```bash
-.\mvnw.cmd spring-boot:run
-```
-
-(No Linux/macOS: `./mvnw spring-boot:run`.) Na primeira execução, o Flyway aplica as migrations e cria as tabelas. A API fica em `http://localhost:8080/api`.
-
-**4. Rodar os testes:**
-
-```bash
-.\mvnw.cmd test
-```
-
-Os testes usam o banco **`fitzone_test`**, criado automaticamente na primeira execução (profile `test`, em `src/test/resources/application-test.properties`). Cada teste roda numa transação desfeita no final, então o banco de testes fica sempre vazio e **o banco `fitzone` de desenvolvimento nunca é tocado**.
-
-**5. Subir o front-end** (com a API rodando, em outro terminal):
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-O sistema abre em `http://localhost:5173`. O endereço da API está em `frontend/.env.development` (`VITE_API_URL`); se o front rodar em outra origem, ela precisa estar em `fitzone.cors.origens-permitidas`, no `application.properties`, senão o navegador bloqueia as requisições (erro de CORS no Console). Para conferir o código: `npm run lint`.
-
-**6. Testar manualmente:** a coleção do Postman está em `postman/` e o checklist dos cenários em [Roteiro.md](Roteiro.md).
-
----
-
-## 4. API
-
-| Recurso | Rotas |
-|---|---|
-| Alunos | `POST /api/alunos` · `GET /api/alunos` · `GET /api/alunos/{id}` · `GET /api/alunos/busca?cpf=` · `PUT /api/alunos/{id}` · `DELETE /api/alunos/{id}` |
-| Ambientes | `POST /api/ambientes` · `GET /api/ambientes` · `GET /api/ambientes/{id}` · `PUT /api/ambientes/{id}` (só observações) · `DELETE /api/ambientes/{id}` · `GET /api/ambientes/tipos` |
-| Agendamentos | `POST /api/agendamentos` · `GET /api/agendamentos?data=&ambienteId=&alunoId=` (filtros opcionais) · `GET /api/agendamentos/{id}` · `GET /api/agendamentos/orcamento?ambienteId=&horaInicio=&horaFim=` · `POST /api/agendamentos/{id}/servicos` · `DELETE /api/agendamentos/{id}` |
-| Serviços | `GET /api/servicos/tipos` (catálogo: nome, preço e forma de cobrança) |
-| Relatórios | `GET /api/relatorios/alunos/{id}` · `GET /api/relatorios/ambientes` · `GET /api/relatorios/faturamento` · `GET /api/relatorios/servicos` |
-
-Exemplos de corpo:
-
-```jsonc
-// POST /api/alunos
-{ "cpf": "12345678901", "nome": "Ana Souza", "email": "ana@email.com", "telefone": "11987654321" }
-
-// POST /api/ambientes   (tipo: MUSCULACAO | YOGA | CROSSFIT | PISCINA)
-{ "tipo": "YOGA", "observacoes": "Sala climatizada" }
-
-// POST /api/agendamentos
-{ "alunoId": 1, "ambienteId": 101, "data": "2026-12-01", "horaInicio": "08:00", "horaFim": "10:40" }
-
-// POST /api/agendamentos/{id}/servicos   (tipo: AVALIACAO_FISICA | NUTRICIONISTA | PERSONAL_TRAINER | LOCKER)
-{ "tipo": "LOCKER", "quantidade": 2 }
-```
-
-Todo erro volta no mesmo formato:
-
-```json
-{
-  "status": 400,
-  "titulo": "Dados inválidos",
-  "mensagem": "Um ou mais campos estão inválidos. Corrija e tente novamente.",
-  "caminho": "/api/alunos",
-  "dataHora": "2026-10-20T16:30:00",
-  "campos": [ { "nome": "cpf", "mensagem": "O CPF deve conter exatamente 11 dígitos, sem pontos ou traço" } ]
-}
-```
-
-### Regras de negócio e preços
-
-| Item | Valor |
-|---|---|
-| Sala de Musculação (ids 101–110) | R$ 100,00/h |
-| Sala de Yoga (ids 201–210) | R$ 70,00/h |
-| Sala de Crossfit (ids 301–310) | R$ 100,00/h |
-| Piscina (ids 401–410) | R$ 80,00/h |
-| Avaliação física | R$ 70,00 (fixo) |
-| Nutricionista | R$ 80,00 (fixo) |
-| Personal trainer | R$ 50,00 por hora cobrada do agendamento |
-| Locker | R$ 5,00 por unidade |
-
-- **Horas cobradas**: só horas completas (2h40 → 2h); reservas menores que 1 hora pagam 1 hora cheia.
-- **Conflito de horário**: dois agendamentos no mesmo ambiente e dia não podem se sobrepor; horários "encostados" (8h–9h e 9h–10h) são permitidos.
-- **Exclusão**: aluno ou ambiente com agendamentos não pode ser excluído (409). Cancelar um agendamento remove os serviços dele.
-
----
-
-## 5. Estrutura de pastas
-
-```
-Projeto-FitZone/
-├── .env.example              # chaves de configuração (o .env real não é versionado)
-├── frontend/                 # front-end React + Vite
-│   ├── .env.development      # VITE_API_URL (endereço da API, não é segredo)
-│   └── src/
-│       ├── api/              # cliente HTTP central + um módulo por recurso
-│       ├── avisos/           # Context dos avisos (useAviso)
-│       ├── components/       # Layout, Modal, Botao, campos, gráficos, itens e modais de cada tela
-│       ├── hooks/            # useDados (busca/recarga) e useAgora (relógio)
-│       ├── pages/            # Painel, Agendamentos, Alunos, Ambientes, Relatorios, NaoEncontrada
-│       ├── formatos.js       # moeda, CPF, telefone, datas e horas (sem armadilhas de fuso)
-│       └── index.css         # tokens de cor e fonte, tabelas, campos e anilhas
-├── postman/                  # coleção do Postman (testes manuais)
-├── Roteiro.md                # checklist dos testes manuais
-└── src/
-    ├── main/
-    │   ├── java/com/fitzone/
-    │   │   ├── FitzoneApplication.java   # ponto de entrada Spring Boot
-    │   │   ├── domain/
-    │   │   │   ├── model/        # entidades JPA + enums TipoAmbiente e TipoServico
-    │   │   │   ├── repository/   # interfaces Spring Data JPA
-    │   │   │   ├── service/      # regras de negócio (@Service, @Transactional)
-    │   │   │   └── exception/    # exceções de domínio (unchecked)
-    │   │   └── api/
-    │   │       ├── config/           # CorsConfig (origens liberadas para o front)
-    │   │       ├── controller/       # @RestController por recurso
-    │   │       ├── dto/              # records de request/response e dos relatórios
-    │   │       └── exceptionhandler/ # ApiExceptionHandler + ErroResposta
-    │   └── resources/
-    │       ├── application.properties
-    │       └── db/migration/     # migrations Flyway (V1..V4)
-    └── test/
-        ├── java/com/fitzone/domain/service/       # testes de integração dos services
-        └── resources/application-test.properties  # profile de teste (banco fitzone_test)
-```
